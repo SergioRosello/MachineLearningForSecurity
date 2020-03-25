@@ -180,6 +180,165 @@ Clustering provides a mathematically rigorous approach to detecting patterns and
 
 
 
-# Classification
+# Classification Using The Logistic Regression and Decision Tree Algorithms
+
+* **Classification:** The process of assigning an unknown object to a known category in order to make informed decisions
+* **Classification in Machine Learning:** A set of computational methods for predicting the likelyhood that a given sample belongs to a predefined class
+
+In **binary classification**, the elements classified, fall either in one class or another. 
+(e.g: A email is *spam* or is *not spam*) 
+By convention, samples that posess the attributes that we are investigation (email is *spam*), are labeled as belonging to class 1, while that labels that dont posess this attribute, are labeled as belonging to class 0.
+
+In **multiple classification**, a sample can belong to multiple classes at the same time.
+
+In **multinominal classification**, a value is assigned to one class among a value of three or more.
+
+We will consider only binary classification
+
+* **Classifier:** Algorithm used to perform classification.
+
+We will analyze the logic regression and decisions trees. (Binary classification classifiers)
+
+## Supervised Vs. Unsupervised Learning
+
+* **Classification:** Supervised Learning 
+    * An analyst builds a model with samples that have already been identified with respect to the property under investigarion.
+    * The job of the classifier is to ascertain how the feature attributes of each class can be used to predict the class of new, unlabeled samples.
+* **Clustering:** Unsupervised Learning
+    * The properties that distinguish one group of samples from another must be discovered.
+
+## Typicall classification session
+
+1. *Training* phase
+    1. Analysts construct a model by applying a classifier to a set of training data
+    1. The training set consists of two files: A matrix of sample data and a Vector of labels (1 per row in the matrix) 
+1. *Validation* phase
+    1. Analyst applies the validation data to the model, to assess accuracy
+    1. Analyst tweaks hyperparameters, to achieve maximum accuracy
+1. *Testing* phase
+    1. assess the modal's accuracy with test data withheld from the training and validation phases
+    1. If results are satisfactory, the analyst can proceed to *deployment* phase
+1. *Deployment* phase
+    1. The model is applied to predict the class membership of new, unlabeled data.
+
+## Classification via Logistic Regression (LR)
+
+* **LR** is a linear classifier.
+    * Mathematically, LR utilizes straight lines and planes to distinguish vectors belonging to one class or another.
+* **Fitting**: The process of carving the feature space into two regions
+* **Decision Boundary:** The line or plane that  separates one region from another
+* **Solver functions**: Functions used to determine the location of the Decision Boundary
+    * We will look at the *liblinear* solver and how it applies the *coordinate descent* method
+
+### The role of regression weights
+
+Then play a central role in determining how much each feature and feature value contributes to a given vector's class membership.
+This is achieved by multiplying each feature value by it's coresponding weight:
+
+![Regression Weights](./RegressionWeights.png)
+
+Positive and negative values contribute to class 1 and class 0 respectively.
+
+To predict the class, LR sums all of the products together with a computed *bias* value.
+If the aggregate sum is >= 0, LR will predict the sample as belonging to class 1.
+If the value is < 0, LR will predict the sample as a class 0 member.
+
+In our example above, LR would sum 12.5, 1050 and -252 for a sum of 815.5.
+Since the sum is >= 0, our sample would be predicted to belong in class 1.
+
+Most of the training phase of a LR session is devoted to optimizing the linear regression weights.
+The algorithm will eventually find the best distribution of weights, given enough time.
+
+### The role of regularization and penalty parameters
+
+**Regularization:** The use of a penalty parameter C to compress the range of regression weights in much the same way they use normalization to compress feature values.
+
+C controls how large the weighted values can become.
+Models with extremely high weight ranges, do a excelent job at predicting the class of training vectors, but produce sub-par results when applied to test data. 
+This is called: *over-fit* the data.
+
+**Penalty parameters *L1* and *L2*:** Control wich features are allowed to influence the classifier in computing regression weights. 
+
+*L1* sets a threshold that determines how aggresive LR should be in eliminating features with comparativeley low predictive power.
+The higher the weight to *L1*, the more features will be executed.
+
+*L2* minimizes the impact of a group of highly correlated features so that their collective influence does not skew the results.
+
+### Logistic Regression Training Phase
+
+In this phase, the analyst's primary goal is to fit the data by producing an optimized set of regression weights.
+
+*Step 1: Data import and Session Setup*
+
+The analyst imports two files:
+
+1. A matrix of normalized training samples
+1. A vector of labels that define each sample's class membership
+
+
+![Vactor class membership](./VectorClassMemberships.png)
+
+*Step 2: Regularization and Regression Weight Optimization*
+
+An initial set of regression weights are assigned, and the analyst invokes a *likelyhood* function.
+This compares the actual number of positive and negative cases to the aggregate quantity predicted using the initial weights.
+The resulting score is used to calculate a positive or negative ajustment to each weight's value.
+The analyst can control the size of this ajustment on a feature-by-feature basis by utilizing a *learning rate* parameter. 
+Over the course of the repeated calculation cycles, the regression weights will gradually and incrementally move closer and closer to their optimal values.
+After each optimization, the analyst can experiment with diferent penalty parameter settings and then address toe resulting model.
+
+*Step 3: Assigning Probability Scores to Class Predictions*
+
+LR is intrinsically a method for predicting the probability that a given vector belongs to a particular class. 
+LR includes a *logit function* that converts the classification result into a point along a probability curve that ranges from 0 - 1.
+The closer the point is to probability score approaching y=1, the stronger the prediction will be that the sample belongs to class 1.
+The closer the point is to p=0, the more strongly it will be predicted to belong to class 0.
+
+*Step 4: Exporting the Logistic Regression Model*
+
+The resulting classification model can now be exported and subjected to testing.
+Mathematically, the model consists of the bias value along with a vector of regression weights.
+Once these have been computed, the coordinates of the decision boundary can be calculated.
+
+In the simplest case of a classification problem with only two features, the equation takes the form `x2 = -(m1/m2) x1 + b` in which *x1* and *x2* are the feature values, *m1* and *m2* are their respective regression weight and *b* is the bias value.
+
+If there are two features, the decision baoundary will comprise a line. 3, a plane, etc...
+
+### Logistic Regression Testing Phase
+
+The analyst assesses the model by exposing it to data it hasn't seen before and then measuring the accuracy of it's predictions.
+
+To validate it's predictions, you can use the *confusion matrix* function.
+It examines each sample in turn and then compares it's predicted class membership to it's actual class label. 
+Next, it assignes the prediction of that label to pne of 4 categories:
+
+* True Positive: Correctly predicted to belong to class 1
+* True Negative: Correctly predicted to belong to class 0
+* False Positive: Predicted to be class 1, but is class 0
+* False Negative: Predicted to be class 0, but is class 1
+
+**Validation metrics on matrix data**
+
+* **Precision:** Rate at wich a model's positive prediction is a correct one. `P = TP / TP+FP`
+* **Recall:** Rate at wich a model correctly classifies a positive case. `R = TP / TP + FP`
+
+**Model's overall accuracy and errors in classifying negative cases**
+
+* **Mean accuracy:** `MA = (TP + TN) / Total samples` 
+* **Missclassification Rate:** `MR = 1 - MA`
+* **False Positive Rate:** `FPR = FP / Actual Negatives` 
+* **Specificity:** `S = TN / Actual Negatives`
+* **Prevalence:** `P = Actual Positives / Test Samples`
+
+### Model Evaluation Using Receiver Operating Characteristic Curves
+
+Receiver Operating Characteristic (ROC) Curves provide a convenient and visually intuitive way to access the quality of a model's predictions and to compare the accuracy of one model against another in solving a binary classification problem.
+
+* The more accurate the model is, the closer it's ROC curve will be to the upper left quadrant.
+* The `y = x` ROC curve would be a model in wich data is predicted randomly
+* A model is predicting a lot of false positives if it's ROC curve is close to the lower right quadrant.
+
+![ROC Space description](./ROCSpace.png)
+
 # Probability
 # Deep Learning
