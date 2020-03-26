@@ -455,8 +455,84 @@ The prediction with most votes, wins.
 
 ## Classification applied to real world Security Threats
 
+We will be detecting botnet C&C systems that are currently in the wild today
+
+### Collecting and preparing our sample data
+
+#### 1. Data collection
+
+* We collect data produced from issuing HTTP requests for the 4789 websites offsets known to be associated with 13 different botnet panels.
+* We sort files into groups based on their response codes
+* We produce fuzzy-hashes of eack file (With ssdeep)
+    * Uset do assess how similar a file is to another without examining the file contents directly
+* We normalize the resulting data
+
+#### 2. Feature extraction 
+
+* Each vector includes 357947 features
+* These features are associated with 14 different labels.
+* 13 of these labels are associated with our known botnet panel sites.
+* The 14th label represents our set of clean servers.
+* Each feature will consist of a response code and a hashed value.
+
+#### 3. Vectorization
+
+* Assemble vectors using the features we just created
+    * This produces a matrix of vectors 
+
+### Training Phase
+
+DT and LR algorithms examine all of the features and their hash values to assess the degree of similarity between offsets originating from the C&C and benign servers respectively.
+
+#### Classification with Decision Trees
+
+* If we are satisfied with the hyperparameter settings in scikit-learn, we can start training immediateley.
+* Once the algorithm is complete, it will output the model `bot_model.mdl` and display a threshold graph and ROC cruve assessing it's accuracy. 
+* We can view the decision tree, named `tree.png`. 
+
+![Decision Tree details](./DT_C&C.png)
+
+* The root contains 94 samples of mixed classes.
+* Our first split variable is the *config.php* feature and our split value is <= 0.5.
+    * 64 root samples match this criterion (Therefore the condition is true)
+    * The samples have been copied to the 404 child node on the left.
+        * The Gini score of 0.4824 indicates that this node contains samples of both classes, so additional splitting will be required.
+    * 30 root samples do *not* match the splitting criterion (i.e, the condition is false)
+        * These samples are copied to the child node on the right. (Gini score 0.0 means we have perfect purity)
+        * 30 samples belong to class 1, therefore a botnet pannel
+        * 0 belong to class 0, not a botnet pannel
+        * We have arrived at our first terminal node 
+* Continuing to the last node on the tree, it's child node contains 38 samples belong to benign servers and 1 sample belonging to a C&C server.
+* All of our samples have been classified, we can export our model file for deployment.
+* The model above is extremely efficient because we only need 8 features, instead of the 357947 we began with.
+* When we begin collecting new unlabeled samples, we can limit our HTTP requests exclusively to these 8 features.
 
 
+#### Classification with Logistic Regression
+
+* Adjust hyperparameter setting 
+* Logistic Regression is not as aggresive as DT in reducing features
+
+### Deployment phase
+
+* Resulting model will use these comparisons to predict wether a particular offset is associated with a botnet C&C system or not.
+
+### Classification Takeaways
+
+* Supervised learning method that works well when there is a sufficient quantity of labeled data
+* Classification is a 4-phase method: 
+    * Training
+    * Validation
+    * Testing
+    * Deployment
+* LR and DT are both very effective, but take very different approaches to classification
+* LR are prone to under-fitting, since they must carve feature space up using straignt lines and planes
+* DT carve feature space in rectangles are are more prone to over-fitting, since unless stopping criteria are applied, they create decision rules for every vector
+* Validation methods to test models
+    * Confusion matrices
+    * Probability Threshold Diagrams
+    * ROC curves
+    * ...
 
 # Probability
 # Deep Learning
