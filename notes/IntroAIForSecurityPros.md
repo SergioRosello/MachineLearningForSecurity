@@ -535,4 +535,47 @@ DT and LR algorithms examine all of the features and their hash values to assess
     * ...
 
 # Probability
+
+We will examine the Naive Bayes classifier and the Gaussian Mixture Model cluster algorithm and consider how they can be applied to solve security-related detection and remediation problems
+
+## What exactly is probability?
+
+Probabilistic models are well suited to solve problems in which we have insufficient or imperfect knowledge.
+Particularly effective in modeling uncertainty.
+Properly utilized, they enable us to reduce uncertainty to the point at which we can make decisions with a high degree of confidence.
+
+### Conditional VS. Joint Probability
+
+* In *Conditional Probability* our goal is to determine the probability that event B will follow event A
+* In *Joint probability* our goal is to determine the probability of event A and B occouring at the same time
+
+## Classification with Naive Bayes Algorithm
+
+Bayes Theorem provides the means to calculate the probability that a given event A will occour when condition B is true.
+In a classification problem, Bayes Theorem enables us to compute the conditional probability that a sample belongs to a particular class given its feature attributes.
+
+In supervised learning, the Bayes theory might be dificult to solve because it takes conditional probabilities into account. It computes the probability relationships between every feature in the dataset in the course of producing a classification decision.
+
+The Naive Bayes Theorem dramatically simplifies this process by making the assumption of *class conditional independence*.
+It ignores the effects of conditional probability when it assigns samples to classes.
+In almost every case, this assumption is untrue.
+
+![Naive Bayes](./NaiveBayes.png)
+
+* **Posterior Probability:** Probability of a sample belonging to a particular class (C) given it's feature attributes (X). The result with the highest probability determines which class is assigned.
+* **Class Prior Probability:** Refers to the prevalence of the class in the dataset.
+* **Predictor Prior Probability:** Prevalence of the *feature attribute* in the dataset.
+* **Likelihood:** Probability of finding feature attribute X given C
+
+There are several variants of the Naive Bayes.
+The 3 most popular are: 
+
+* **Bernoulli Naive Bayes:** (BNB) Well-suited for spam-detection and other text-based problems in which vectors have been encoded to indicate the presence of a particular string.
+* **Multinominal Naive Bayes:** (MNB) Well-suited for spam-detection and other text-based problems in which vectors have been encoded to indicate the frequency with which a text string appears
+* **Gaussian Naive Bayes:** (GNB) Appropiate with continuous data that falls within a normal or gaussian distribution 
+
+### Naive Bayes in action
+
+Our goal is to determine weather a given remote computer is running Windows or Linux based on the network services it provides.
+
 # Deep Learning
