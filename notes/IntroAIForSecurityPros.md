@@ -707,8 +707,87 @@ To begin, the analyst sets 4 initial values:
 
 #### *Step 1: Expectation*
 
+GMM uses each mixture's mean, variance, and mixture proportion parameters to assign a probability score between 0 and 1 to each data point.
+This indicates which of the gaussian distributions is responsible for that data point.
+After that, each data point will be assigned to the mixture component with highest responsability score.
 
 
+#### *Step 2: Maximization* 
 
+During this process, weighted averages are computed and then used to modify the mean and variance parameters.
+
+1. GMM recalculates the mixture proportions by adding up the responsability scores for each mixture and then dividing the sum by the total nuber of data points.
+1. GMM updates the mean by computing a *weighted average*
+    * GMM multiplies the feature value for each mixture member by its corresponding responsability score to produce a weighted value.
+    * GMM computes a new weighted mean for each mixture component. (Sum(total weighted values for mixture component) / (sum(Mixtures responsability score))
+1. GMM calculates a new variance for each mixture component
+
+#### *Step 3: Iteration of EM cycle
+
+Using the revised parameters, GMM repeats the EM cycle multiple times, producing new responsability scores and then applying them to modify the mixture parameters.
+This process continues until
+
+* Values stop changing
+* Predefined nuber of EM iterations has been completed
+
+The resulting GMM Model consists of a vector containing the mixture proportion, mean, and variance values that define each Gaussian Distribution.
+
+### GMM Pitfalls and Limitations
+
+1. Analyst must choose the correct nuber of mixture components to create
+1. Requires continuous data (Conforming a Gaussian Distribution)
+1. GMM works best in feature spaces of 6 or less.
+
+## Detecting SMS Spam with GMM and NB
+
+We will be using a list of message entries.
+The first string in the line is the type of message. (Either Spam or Ham)
+To calculate if a message is Spam, we will use *bigram analysis*.
+This consists on checking the two consecutive letters, and calculate their frequency in a message.
+The model will be able to determine if the message is Spam based on the frequency of bigram words.
+
+### Vectorizing
+
+One way to analyze text strings is to consider each character to be a member of a particular character class.
+In this examplem we will be using:
+
+* Letters
+* Digits
+* Punctuations
+* Whitespaces
+
+Using these character class definitionsm we'll convert "abc123" into a *Character class sequence*.
+Letters to character class 0 and numbers to character class 1.
+
+Converted to a set of bigrams:
+
+```
+0,0
+0,0
+0,1
+1,1
+1,1
+```
+
+Counting the number of unique bigrams:
+
+* 2 instances of `0,0` 
+* 1 instance of `0,1` 
+* 2 instances of `1,1` 
+* 0 instances of `1,0` 
+
+This constructs the matrix:
+
+![Matrix](./Matrix.png)
+
+Finally, we have to flatten the matrix into a vector (This is what GMM and NB algorithms use)
+Each vector will have 16 dimensions, (4 possible character chasses for the first character and 4 possible character chasses for the second character)
+
+## Probability modeling takeaways
+
+* Conditional probability is determined with datermining the likelyhood that Event B will follow event A
+* Joint probability is concerned with determining the likelyhood that both events will occour simultaneously
+* Naive Bayes assumes class conditional independence, while this is nearly allways false, it still performs with great accuracy and efficiently, as it only requires 4 parameters: *Posterior probability, Class Prior Probability, Predictor Prior Probability, Likelihood*.
+* Every Gaussian distribution can be uniquely identified by it's *mean* and *variance*. GMM performs clustering via a iterative *Expectation Maximization* process. Consequently, GMM can properly detect clusters that overlap. GMM requires analyst to set only one hyperparameter: N. Mixtures. 
 
 # Deep Learning
