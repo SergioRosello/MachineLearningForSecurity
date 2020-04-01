@@ -577,5 +577,138 @@ The 3 most popular are:
 ### Naive Bayes in action
 
 Our goal is to determine weather a given remote computer is running Windows or Linux based on the network services it provides.
+We will aquire the training data we need by scanning a ntwork of computers with known operation systems.
+
+The classifier will begin analyzing the vectors in the table below to determine:
+
+* The number of systems labeled as Windows (4) and Linux (3).
+* The HTTP, SSH, SMB and FTP services provided by these servers.
+
+![Vectors in Table](./NaiveBayesTable.png)
+
+Next, Naive Bayes calculates the Class and Predictor Prior Probabilities as shown in the Likelihood Table.
+
+![NB Likelihood Table](./NaiveBayesLikelyhoodTable.png)
+
+No matter how carefully we perform our sampling, there is a high likelyhood that our dataset may contain feature/class combinations that we failed to capture in our training set.
+If we don't compensate for this (Smoothing), Naive Bayes will calculate a probability score of 0 that a sample with those feature attributes belongs to that class.
+
+* *Additive / Laplace* smoothing
+    * adds a value *Alpha* to the featore counts.
+    * Increases the class counts by a value equal to *d (number of classes) * alpha* 
+
+The revised counts are showed in the following image:
+
+![Naive Bayes revised table](./NaiveBayesRevisedTable.png)
+
+Now, we can calculate the likelyhood values.
+
+![Naive Bayes Likelihood Table revised](./NaiveBayesRevisedLikelyhoodTable.png)
+
+We can apply these probability scores to our test dataset to see how accurately we're able to predict a new sample's class membership.
+
+Given this sample (And assuming we don't know it's tag)
+
+![Sample](./NaiveBayesSample.png)
+
+In order to predict the sample's class, we must calculate the posterior probability 2 times. 
+One for Windows and one for Linux.
+
+`HTTP: 0.6667 ^ 1 * 0.3333 ^ 0 = 0.6667 * 1.0 = 0.6667`
+
+`SSH : 0.1667 ^ 1 * 0.8333 ^ 0 = 0.1667 * 1.0 = 0.1667`
+
+`SMB : 0.6667 ^ 0 * 0.3333 ^ 1 = 1.0 * 0.3333 = 0.3333`
+
+`FTP : 0.5    ^ 1 * 0.5    ^ 0 = 0.5 * 1      = 0.5`
+
+Now we generate our Windows probability score by finding the product of these scores and the presmoothing value of the Class Prior Probability.
+
+`(0.6667 * 0.1667 * 0.3333 * 0.5) * 0.571428571 = 0.010583598`
+
+Repeating the same for Linux:
+
+`HTTP: 0.4 ^ 1 * 0.6 ^ 0 = 0.4 * 1.0 = 0.4`
+
+`SSH : 0.8 ^ 1 * 0.2 ^ 0 = 0.8 * 1.0 = 0.8`
+
+`SMB : 0.2 ^ 0 * 0.8 ^ 1 = 1.0 * 0.8 = 0.8`
+
+`FTP : 0.4 ^ 1 * 0.6 ^ 0 = 0.4 * 1.0 = 0.4`
+
+`(0.4 * 0.8 * 0.8 * 0.4) * 0.428571429 = 0.043885714`
+
+Comparing the posterior probability results:
+
+* Windows probability: **0.010583598**
+* Linux probability  : **0.043885714**
+
+Therefore, Naive Bayes has correctly predicted the sample belonging to the class *Linux*
+
+### Naive Bayes Session Process
+
+NB analysis proceeds through: Training, Validation, Testing
+
+When training is complete, the result takes form of a likelyhood table and it's associated Class and Predictor Prior Probability values.
+
+During the subsequent Validation and Testing phases, the model is exposed to testing data and assessed for accuracy using confusion matrices and ROC curves. 
+Once this model is completed successcully, the trained model is applied to new, unreliable data to make class predictions.
+
+### Naive Bayes Pitfalls and Limitations
+
+* Assumes features are conditionally independent (In most real-world scenarios, this is untrue)
+* When dataset is sparse, we nay not be able to capture all of the actual feature/class combinations that exist in underlying data environments. Fortunately, we can ameliorate these effects with Laplace and other smoothing techniques.
+
+## Clustering with Gaussian Mixture Model Algorithm
+
+* Makes use of probability measures
+
+## Gaussian Distributions
+
+The symetry arround the mean is one of the most recognizable qualities of a Gaussian distribution and accounts for it's characteristic bell-curve.
+
+### Computing Standard Deviation and Variance
+
+Every Gaussian distribution can be uniquely identified by it's mean and it's *variance* (or *standard deviation*). 
+Both variance and standard deviation measures indicate the width of the distribution and it's variability with respect to the mean.
+If the SD or variance is small, we can expect the distribution to be a narrow one, with the data points densely packed arround the mean.
+If the SD and variance are large, the data distribution will spread out accordingly.
+Variance = standard deviation * standard deviation
+
+For example, lets compute the *variance* for two students of 155cm and 160cm heights with a population of average height of 160cm. 
+
+1. We compute the deviation first by subtracting the population average from each subject's height and then square the result.
+    * > `(155 - 160)^2 = 25`
+    * > `(155 - 160)^2 = 25`
+1. We compute the average of the squared deviations
+    * > `(5^2 + 5^2)/2 = 25cm^2`
+
+Based on the results above, the SD sqrt(25) = 5 cm.
+This means that one standard deviation will encompass results that fall 5 cm of either side of the 160cm mean.
+
+### Applying Gaussian Distribution Concepts to Clustering
+
+It is theoretically possible to split two groups of mixed up datasets by applying a gaussian distribution technique to a key continuous variable (Feature)
+
+### Expectation Maximization
+
+To perform clustering, GMM employs Expectation Maximization (EM), an iterative two-step optimization process that is also used by many other machine learning algorithms to solve probabilistic problems. 
+
+To begin, the analyst sets 4 initial values:
+
+* **Fixed Hyperparameter: Number of Mixtures**
+    * Determines how many clusters (mixtures) will be created.
+* **Parameter 1: Mixture Proportion (MP)**
+    * Estimate of the proportion of samples that belong to each mixture component.
+* **Parameter 2: Mean**
+    * Average value of the data for every mixture component
+* **Parameter 3: Variance (Standard Deviation)**
+    * How concentrated the data is with respect to the Mean
+
+#### *Step 1: Expectation*
+
+
+
+
 
 # Deep Learning
