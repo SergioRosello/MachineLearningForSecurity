@@ -5,15 +5,15 @@
 * **Nombre:** Sergio 
 * **Apellidos:** Roselló Morell
 * **DNI:** 53632974X
-* **email:** Sergio-resello@hiemal.con
+* **email:** Sergio-resello@hotmail.con
 
 ## Información sobre el entorno
 
-* **Sistema Operativo:** Arca Linux
+* **Sistema Operativo:** Arch Linux
 * **Entorno de escritorio:** dwm
 * **Versión de Python:** Python 3.8.2
-* **Editor de texto:** Nevis
-* **Generación del documento:** Escrito en AD, compilado a LaTeX con 
+* **Editor de texto:** NeoVim
+* **Generación del documento:** Escrito en MD, compilado a LaTeX con 
 
 > `nnoremap <leader>e :! pandoc % -f markdown -t latex -s -o %:r.pdf<cr>`
 
