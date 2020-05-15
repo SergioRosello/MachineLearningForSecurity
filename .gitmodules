@@ -1,0 +1,3 @@
+[submodule "IntroductionToMachineLearningForSecurityPros"]
+	path = IntroductionToMachineLearningForSecurityPros
+	url = git@github.com:cylance/IntroductionToMachineLearningForSecurityPros.git
