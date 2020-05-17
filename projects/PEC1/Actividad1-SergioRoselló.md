@@ -17,9 +17,9 @@
 
 > `nnoremap <leader>e :! pandoc % -f markdown -t latex -s -o %:r.pdf<cr>`
 
-## Breve resumen de la actividad a realizar
+## Resumen
 
-## Respuestas de cada uno de los apartados pedidos en la actividad
+Se va a realizar un ejercicio de clustering guiado en la primera fase del ejercicio, para luego pasar a un ejercicio no guiado, en el que se tendrá que llegar a analizar tanto el mecanismo de clustering como el resultado que propone el algoritmo y justificarlo.
 
 ### Apartado 1 - Cálculos con los datos de ejemplo
 
@@ -68,7 +68,7 @@ Lo único relevante es que se ha tenido que cambiar el comando para obtener las 
 
 > `python stats_vectors.py archivo.h5` 
 
-a
+A
 
 > `python stats_vectors.py -i archivo.h5`
 
@@ -138,24 +138,121 @@ Por ejemplo, otra dirección IP con intención maliciosa es la `192.187.126.162`
 
 ### Apartado 2 - Calculo con otros datos diferentes
 
-#### Valores de parámetros
+#### Valores de parámetros - K-means
 
-* Los casos y parámetros de clustering que se han probado inicialmente (de K-Means o DBSCAN ) y porque.
+Se han probado las agrupaciones de clusters desde 2 a 21 usando el algoritmo K-MEANS.
+A continuación, se ha creado una tabla para analizar los resultados.
+Esta tabla se ha ordenado según el valor de silhouette por cada cluster.
+
+Una muestra de la tabla:
+
+```
+10:               11:              12:             13:                                                                                                                             
+  14418    0.935    14184   0.956    14427  0.934    14316   0.946
+  571      0.926    576     0.919    225    0.920    571     0.925
+  480      0.695    258     0.832    576    0.911    259     0.827
+  674      0.687    426     0.823    426    0.822    429     0.815
+  618      0.675    661     0.667    659    0.701    654     0.694
+  321      0.654    409     0.598    46     0.662    618     0.681
+  408      0.601    264     0.568    406    0.603    320     0.579
+  804      0.454    768     0.508    666    0.578    48      0.579
+  310      0.248    800     0.472    248    0.422    265     0.553
+  1627     0.192    70      0.138    957    0.339    208     0.530
+                    1815    0.080    1526   0.263    769     0.502
+                                     69     0.150    52      0.323
+                                                     1721    0.144
+                                                                    
+```
+
+Se ha creado esta tabla porque se pretende hacer un seguimiento de los clusters a medida que se van separando.
+En este proceso, se pueden identificar los clusters que tienen relación entre iteraciones de subdivisión y posiblemente explicar la separación de algunos de los nuevos clusters.
+
 
 #### Modificaciones de código
 
-* Los resultados de estadísticas de las primeras pruebas que se han usado para decidir otros valores de los parámetros a probar y como se han usado para elegirlos.
+Podemos observar como se mantienen algunos grupos entre iteraciones de clusters (Estos son los que nos interesan, especialmente, cuando tienen una silhouette alta), pero hay otros, que no se mantienen, y que se dividen en sub-clusters.
+
+Usando el numero de elementos en el cluster y su silhouette, se ha intentado identificar a cada cluster.
+Algunos clusters saltan a la vista debido a su gran numero de elementos y alto silhouette. 
+Estos han sido sencillos de identificar.
+Los que no tienen un silhouette ni un numero de elementos en el cluster diferentes a los demás, ha sido muy complicado identificarlos.
+
+El proceso de identificación ha sido clave para averiguar que clusters se mantienen estables con el paso de la división en mas clusters.
 
 #### Fallos o errores y solución
 
-* Si se han podido encontrar posibles clusters con IPs sospechosas de potenciales ataques, y que características se observan en los resultados que se han obtenido en cada caso al analizar los registros correspondientes.
+Un problema encontrado es que al ser la numeración de clusters aleatoria, no podemos determinar exactamente que grupo se divide y cual se queda. Solo podemos inferirlo.
+Esto introduce un nivel de complejidad mucho mayor al análisis.
+
+Para superar esta limitación, seria necesario implementar un algoritmo que analiza la salida de K-means y que compare los clusters de los datos con IP, para obtener el cluster en el que estaban anteriormente y el cluster en el que están ahora.
+
+Según los datos obtenidos, pienso que una posible agrupación optima es dividir el grupo en 15 clusters.
+En el paso de 14 clusters a 15 clusters, hay uno con silhouette 0.69, que luego pasa a subdividirse y recobrar una pertenencia mucho mayor de 0.90. 
+A partir de la subdivisión 15, este cluster se mantiene bastante estable, con una pertenencia también estable.
+
+Al analizar los datos del cluster, veo que la IP `5.101.65.160` pertenece al mismo y que sus registros parecen tener un comportamiento un tanto malicioso.
+Un extracto de las peticiones:
+
+```
+/administrator/index.php HTTP/1.1" 
+/admin/index.php HTTP/1.1"
+/admin.php HTTP/1.1"
+/admin.php?/cp/login&return= HTTP/1
+/manager/ HTTP/1.1"
+/admin.php HTTP/1.1"
+/index.php/admin HTTP/1.1"
+```
+
+Una revisión de otra IP que también pertenece al cluster de la anterior es la `5.101.65.120`.
+Esta también tienen indicios de ser maliciosa.
+Revisando sus logs, vemos el siguiente trafico:
+
+```
+/administrator/index.php
+/admin/index.php HTTP/1.
+/admin.php HTTP/1.1"
+/admin.php?/cp/login&ret
+/admin.php HTTP/1.1"
+/manager/ HTTP/1.1"
+/index.php/admin HTTP/1.
+```
+
+Esto es una prueba de que el algoritmo esta dividiendo correctamente los datos presentados.
+
+Esto no es una prueba de que este cluster es el único que existe con posibles IP maliciosas.
+Recomendaría realizar el análisis puncionado anteriormente con demás clusters que se comporten de una forma similar y revisar una de las IP que pertenecen a el.
+Si esta IP contiene peticiones maliciosas, podemos pasar a añadir el cluster a la lista de clusters a analizar.
 
 ## Comentarios y opiniones
 
+Estos algoritmos de subdivisión tienen un potencial tremendo, especialmente para analizar cantidades de datos grandes, ya que cuantos mas datos (Seleccionados correctamente), mejor analizara el algoritmo.
+
+La desventaja que les encuentro es que el analista tiene que ser experto en el campo que esta analizando el algoritmo, porque sino, no hay forma de que sepa separar y analizar la salida de los datos.
+
+En definitiva, veo que estos algoritmos son una forma de ordenar los datos, pero que debe existir una capa lógica que se encargue de verificar y validar la salida de los mismos.
+
 #### Dificultades/Problemas encontradas
+
+Una de las dificultades de esta practica ha sido el análisis de los datos que saca el algoritmo.
+De toda la información que te presenta, debes ser capaz de saber que datos son necesarios y cuales no.
 
 #### Programas/Ayudas utilizadas
 
+Ha sido indispensable para mi tener algo de conocimiento en expresiones regulares y mas reduce, ya que para analizar los resultados del algoritmo, he tenido que aislar los datos que me interesan y sonetizar las entradas de los logs del sistema.
+
+Los programas que he usado para realizar estas tareas son:
+
+* Python
+* NeoVim y su capacidad de búsqueda y sustitución
+* column (Bash)
+* sort (Bash)
+* awk (Bash)
+
 #### Comentarios sobre la realización de la actividad
 
+En definitiva, esta practica me he proporcionado una visión mas practica del proceso de análisis de datos con algoritmos de clustering.
+Una cosa es saber implementar el algoritmo y otra muy distinta, es realizar un análisis con el.
+
 ## Bibliografía 
+
+* *scikit-learn:* https://scikit-learn.org/stable/modules/generated/sklearn.cluster.KMeans.html
