@@ -1,3 +1,6 @@
 [submodule "IntroductionToMachineLearningForSecurityPros"]
 	path = IntroductionToMachineLearningForSecurityPros
 	url = git@github.com:cylance/IntroductionToMachineLearningForSecurityPros.git
+[submodule "Mastering-Machine-Learning-for-Penetration-Testing"]
+	path = Mastering-Machine-Learning-for-Penetration-Testing
+	url = git@github.com:PacktPublishing/Mastering-Machine-Learning-for-Penetration-Testing.git
