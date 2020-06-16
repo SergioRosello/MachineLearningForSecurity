@@ -90,6 +90,12 @@ Al tener varios archivos,
 
 #### 2.3 Vectorización
 
+<<<<<<< Updated upstream
+=======
+Al ser una captura de red, los datos no tienen que ser vectorizados necesariamente porque ya son de carácter categórico.
+Esto es, solo pueden cobrar valores predefinidos, no infinitos.
+
+>>>>>>> Stashed changes
 ### Apartado 3 - Generación del modelo
 
 #### Valores de parámetros se han usado
@@ -111,9 +117,12 @@ Al tener varios archivos,
 Los programas que he usado para realizar estas tareas son:
 
 * Python
+* bash
+* tshark
+* head
+* tail
 * sort
-* shuf
-* NeoVim y su capacidad de búsqueda y sustitución
+* NeoVim
 
 ## Comentarios sobre la realización de la actividad
 
