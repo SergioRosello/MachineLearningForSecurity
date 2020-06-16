@@ -45,10 +45,10 @@ Cada registro se puede trazar directamente a una IP que contiene únicamente el 
 Esto quiere decir que el dataset es claro, de forma que se puede analizar de forma manual y llegar a una serie de conclusiones desde el primer momento.
 Esto nos permite deducir los posibles resultados del análisis con el algoritmo de aprendizaje automático.
 
-Es importante que tanto los paquetes maliciosos como los corrientes se hayan capturado al mismo tiempo ya que es una de las formas que tenemos para generar un fragmento de entrenamiento y test.
+Es importante que tanto los paquetes maliciosos como los corrientes se hayan capturado al mismo tiempo ya que es una de las formas que tenemos para generar un fragmento de entrenamiento y test verídico.
 
-Una de las ventajas de este dataset frente a otros que también cumplían los requisitos es que los datos vienen en un formato '.pcap'.
-Este detalle permite al investigador tomar el control de la información que se va a añadir al '.csv' para proporcionar al programa de generación del modelo.
+Una de las ventajas de este dataset frente a otros que también cumplían los requisitos es que los datos vienen en un formato `.pcap`.
+Este detalle permite al investigador tomar el control de la información que se va a añadir al `.csv` para proporcionar al programa de generación del modelo.
 
 ### Apartado 2 - Extracción, Codificación y Vectorización de propiedades
 
@@ -60,42 +60,73 @@ Como esta no es nuestra finalidad, se procederá a determinar las propiedades po
 
 #### 2.1 Extracción
 
-Las propiedades que podemos usar son:
+Las propiedades que vamos a usar son:
 
-* No.
-* Time
+* epoch_date
 * Source
 * Destination
 * Protocol
 * Length
 * Info
 
-De las cuales, vamos a quedarnos con todas excepto 'No.' y 'Source'.
-
-* 'Time' es importante porque cabe la posibilidad de que el programa se comunique con el servidor C&C de forma constante.
-* Aunque 'Source' es aparentemente uno de los campos mas importantes, es posible que no sea tan relevante en la generación del modelo.
-Seria interesante hacer un estudio, para averiguar si es necesario tener dicho campo como propiedad.
+* `epoch_date` es importante porque cabe la posibilidad de que el programa se comunique con el servidor C&C de forma constante.
+También es necesario para ordenar el trafico capturado entre todos los archivos.
+* Aunque `Source` es aparentemente uno de los campos mas importantes, es posible que no sea tan relevante en la generación del modelo.
+Puede ser interesante hacer un estudio, para averiguar si es necesario tener dicho campo como propiedad, pero como no es nuestra prioridad, se incluye, a riesgo de sobreaprendizaje.
 Una de las consecuencias que temo, es que sobre aprenda dado que cada dirección IP genera un campo especifico de trafico.
-En un entorno de producción, esto no es lo común, por tanto, tomo la decisión de eliminar dicho campo.
-* 'Destination' es un indicador claro de un programa malicioso.
-Aunque estamos en una situación parecida a la mencionada anteriormente com 'Source', independientemente de la dirección IP desde la que se genera el trafico, la dirección 'Destination' va a ser la misma, por tanto, si que se va a incluir esta propiedad.
-* 'Protocol' Puede ser uno de los indicadores clave para identificar el malware, aunque en mi opinión, debería ser tratado como un comprobante, no como una primera decisión.
-* Al igual que la propiedad anterior, 'Length' es un buen comprobante para revisar el tipo de paquete.
-* 'Info' proporciona información adicional que se puede usar para discriminar un paquete malicioso.
+En un entorno de producción, esto no es lo común, ya que cada dirección IP genera mas variedad de trafico.
+* `Destination` es un indicador claro de un programa malicioso.
+Aunque estamos en una situación parecida a la mencionada anteriormente com `Source`, independientemente de la dirección IP desde la que se genera el trafico, la dirección `Destination` va a ser la misma, por tanto, si que se va a incluir esta propiedad.
+* `Protocol` Puede ser uno de los indicadores clave para identificar el malware, aunque en mi opinión, debería ser tratado como un comprobante, no como una primera decisión.
+* Al igual que la propiedad anterior, `Length` es un buen comprobante para revisar el tipo de paquete.
+* `Info` proporciona información adicional que se puede usar para discriminar un paquete malicioso.
 
-Al tener varios archivos, 
-
+Una de las funciones que tenemos que realizar antes de poder tratar con los datos, es ordenarlos.
+Hacemos esto porque para analizar los paquetes, tienen que ser lo mas parecidos a una situación cotidiana posible.
+Tenemos la suerte de que los datos han sido capturados todos a la vez, aunque cada IP haya generado un registro únicamente, por tanto, el procedimiento que vamos a seguir es concatenarlos todos en un archivo de texto y ordenarlos por timestamp. 
+De esta forma, vamos a recrear el comportamiento de los paquetes en el momento cronológico el en que ocurrieron.
+De este archivo de texto ordenado, vamos a seleccionar un 70% para entrenar.
+Estos son los datos que va a usar el algoritmo para generar el modelo.
+El otro 30% se va a reservar para revisar que el algoritmo haya generado un modelo correcto y no haya sobreaprendido.
 
 #### 2.2 Codificación
 
+La estructura del script para generar los datos es la siguiente:
+
+* Por cada captura de red, usamos el comando `tshark` para generar un `.csv` a partir del `.pcap` que tenemos disponible.
+* Concatenamos todos los archivos en uno solo
+* Ordenamos por epoch_date
+* Seleccionamos el 70% del archivo para entrenar el modelo.
+
+Esto se transforma a código de la siguiente forma:
+
+```bash
+#!/bin/bash
+
+# Check for the first log.
+# We have to remove subsequent headers.
+first=true
+
+# Concatenate all the pcap files
+for file in ./*/*.pcap; do
+  echo "Processing $file"
+  if $first; then
+    first=false
+    tshark -r $file -T fields -e frame.time_epoch -e ip.src -e ip.dst -e _ws.col.Protocol -e frame.len -e _ws.col.Info -E separator=, -E header=y >> network_traffic.csv
+  else
+    tshark -r $file -T fields -e frame.time_epoch -e ip.src -e ip.dst -e _ws.col.Protocol -e frame.len -e _ws.col.Info -E separator=, >> network_traffic.csv
+  fi
+done
+
+head -n 1 network_traffic.csv > sorted_network_traffic.csv
+tail -n +2 network_traffic.csv | sort -k 1 >> sorted_network_traffic.csv
+```
+
 #### 2.3 Vectorización
 
-<<<<<<< Updated upstream
-=======
 Al ser una captura de red, los datos no tienen que ser vectorizados necesariamente porque ya son de carácter categórico.
 Esto es, solo pueden cobrar valores predefinidos, no infinitos.
 
->>>>>>> Stashed changes
 ### Apartado 3 - Generación del modelo
 
 #### Valores de parámetros se han usado
@@ -129,8 +160,8 @@ Los programas que he usado para realizar estas tareas son:
 ## Bibliografía 
 
 * *Neural networks*:
-    * 'https://scikit-learn.org/stable/modules/
-    neural_networks_supervised.html'
+    * `https://scikit-learn.org/stable/modules/
+    neural_networks_supervised.html`
 * *Dataset*:
     * Alenazi A., Traore I., Ganame K., Woungang I. (2017) Holistic Model for HTTP Botnet 
 Detection Based on DNS Traffic Analysis. In: Traore I., Woungang I., Awad A. (eds) Intelligent, 
