@@ -44,15 +44,26 @@ Los pasos que se realizan engloban de forma general cualquier problema de Machin
 
 ### Descripción y planteamiento del problema
 
-(Ventajas de IA sobre métodos tradicionales)
+(Dificultades para resolverlos con métodos tradicionales)
 
-En el presente documento se estudia la capacidad que tiene un modelo generado por una red neuronal en determinar si el trafico de red que analiza es benigno o malicioso.
-Una aplicación de un modelo de estas características puede ser un sistema de prevención o detección de riesgos.
-Una aplicación así puede ser una gran ayuda en una red industrial critica, empresarial o incluso domestica.
-Ademas, si se mantiene actualizada la red neuronal con las ultimas características de los paquetes de red que generan programas maliciosos, aumentamos el nivel de precisión a la hora de detectar la amenaza interna.
+El problema que se plantea en este análisis es identificar trafico de red malicioso en una red a tiempo real.
 
-Siguiendo por las lineas del comentario anterior, una de las ventajas de los modelos de redes neuronales es que son capaces de distinguir entre trafico benigno y maligno aunque no haya paquetes de red que cumplan exactamente con las características analizadas.
-Esta flexibilidad hace que sea el tipo perfecto de comprobación de trafico de red, ya que la mayoría de los paquetes de red que revise el modelo no se van a repetir, pero es capaz de detectar su tipo, basándose en algunos aspectos clave del paquete.
+La solución debe poder analizar a tiempo real los paquetes generados por la red y decidir si cada paquete individual es o no un paquete proveniente de un malware.
+
+Este problema se adapta muy bien a una solución relacionada con Inteligencia Artificial.
+Mas en concreto, a modelos como las redes neuronales.
+
+El principal inconveniente a la hora de solucionar un problema de selección en tiempo real con modelos tradicionales, aparece cuando se pretende analizar el trafico y compararlo con varios ejemplos de malware.
+Ya sea comparando directamente pequeños atributos, como el paquete de red entero, al final, estamos comparando con características que ya conocemos e identificamos como maliciosas.
+Esto quiere decir que estamos reaccionando al problema, no tomando medidas pro-activas al problema en quistión.
+La finalidad del problema es ser capaces de detectar malware, aunque no se haya detectado anteriormente el tipo especifico de malware siendo analizado.
+
+Solucionar el problema en cuestión con métodos tradicionales, como bien puede ser comprobaciones secuenciales de características del paquete de red a analizar incrementa rápidamente la complejidad del algoritmo.
+Ademas, cada vez que se detecten nuevos casos, se debe integrar la comprobación al programa.
+Esto hace que sea imposible mantenerlo actualizado.
+
+Existen otras técnicas, no tan primitivas, como por ejemplo comprobación de hashes, tanto completos, como parciales del paquete de red.
+Si podemos identificar las características comunes en los paquetes de red enviados entre el malware y el servidor C&C, podemos cifrar estos datos en hashes, que se revisaran contra los paquetes de red a medida que pasan por la red.
 
 
 ### Descripción de los datos a utilizar
@@ -60,9 +71,16 @@ Esta flexibilidad hace que sea el tipo perfecto de comprobación de trafico de r
 (Entrenamiento y pruebas)
 (Fuente en caso real y fuente en este caso ficticio)
 
+Para desarrollar un modelo de detección de paquetes maliciosos, lo mas importante es la calidad de los datos iniciales que tenemos.
+Si generamos el modelo con datos buenos, el modelo puede inferir, en muchas ocasiones el trafico de red maligno.
+
+Es muy importante tener unos datos tanto específicos, como generales, con distintas muestras y combinaciones de paquetes de red malignos, ya que estos son la parte mas critica del proyecto.
+
 Como se ha mencionado superficialmente en la sección anterior, un modelo de detección basado en una red neuronal esta preparado para operar en un entorno de producción, en el que los paquetes de red que va a revisar no son exactamente iguales que con los que ha entrenado, de esta forma, entrenando con un conjunto de datos lo suficientemente rico, podemos inferir la clase del paquete de red.
 
-#### Selección de Dataset
+En el caso del entrenamiento del modelo, vamos a seleccionar un dataset realista, que contenga tanto trafico de red benigno como maligno y varios ejemplos de cada tipo.
+
+#### Selección de Dataset de entrenamiento
 
 Se ha usado la pagina web de [www.secrepo.com](www.secrepo.com) para buscar un dataset que contenga las propiedades deseadas para el estudio.
 
@@ -72,7 +90,7 @@ Las cualidades que se necesitan en el dataset son:
 * Trafico de aplicaciones no maliciosas
 * Cantidad de información (Necesario para poder inferir comportamientos y generar modelos de datos)
 
-Siguiendo los requisitos demarcados anteriormente, se va a usar uno de los datasets que satisfacen los requisitos.
+Siguiendo los requisitos demarcados anteriormente, se han encontrado varios datasets, entre estos, se va a usar `ISOT HTTP Botnet Dataset`, desarrollado por Alenazi A y compañeros para una charla con titulo: "Intelligent, Secure, and Dependable Systems in Distributed and Cloud Environments".
 
 Este dataset ha sido generado por la universidad de Victoria en el año 2017 y consiste en nueve capturas de trafico malicioso y 19 capturas de trafico de aplicaciones no maliciosas, como por ejemplo Dropbox o Avast.
 
@@ -85,16 +103,28 @@ Es importante que tanto los paquetes maliciosos como los corrientes se hayan cap
 Una de las ventajas de este dataset frente a otros que también cumplían los requisitos es que los datos vienen en un formato `.pcap`.
 Este detalle permite al investigador tomar el control de la información que se va a añadir al `.csv` para proporcionar al programa de generación del modelo.
 
-### Algoritmos de AA que se pretenden usar 
+#### Datos sobre los que opera el modelo en producción
 
-Debido a una curiosidad por modelos basados en redes neuronales y a la cabida de los anteriores en un proyecto de detección de malware como este, se ha decidido optar por las redes neuronales como principal algoritmo de generación del modelo.
+Una vez este el modelo terminado, va a ser puesto en un punto estratégico de la red, en el que tiene visibilidad de los paquetes entrantes y salientes de la misma.
+Un sitio en el que podría estar es en el router o switch de la red, actuando de firewall.
+
+Cuando este desplegado, este sistema revisa cada paquete que entra o sale de la red y avisa (En caso de IDS) o ejecuta medidas preventivas (En caso de IPS) según el tipo de paquete que detecte.
+
+En principio, si el modelo ha sido entrenado correctamente, no hace falta volver a entrenarlo con mas datos, pero si lo ponemos y vemos que no detecta correctamente el tipo de paquete que analiza, puede que tengamos un problema de especificidad de datos.
+El dataset que hemos seleccionado para entrenar el modelo es bastante especifico, tiene datos concretos de aplicaciones concretas, como Dropbox, pero no de trafico realista de red, como usuarios buscando cosas en Google o otras aplicaciones diversas.
+En caso de que el modelo no detecte correctamente los paquetes maliciosos es obtener una muestra de nuestra propia red y analizar su trafico, junto con muestras de botnets.
+
+### Posibles algoritmos de aprendizaje automático a usar
+
 
 #### Breve comparación de los algoritmos estudiados
 (Como se realiza el proceso (Transformación de datos e interpretación)
 
-#### Posibles algoritmos a usar
-
 #### Por que Redes neuronales
+
+Debido a una curiosidad por modelos basados en redes neuronales y a la cabida de los anteriores en un proyecto de detección de malware como este, se ha decidido optar por las redes neuronales como principal algoritmo de generación del modelo.
+
+Entre los distintos tipos de redes neuronales existentes, se ha optado por entrenar el modelo con <++>
 
 #### Elección del framework
 
@@ -108,6 +138,11 @@ Entre las opciones, tenemos:
 Viendo las opciones anteriores, decidimos usar Keras, debido a su versatilidad y abstracción de los algoritmos de aprendizaje profundo.
 Este framework nos puede proporcionar la potencia de varios frameworks de redes neuronales como TensorFlow, Theano o CNTK.
 Nosotros vamos a usar Keras en combinación con TensorFlow para generar el modelo.
+
+#### Gestión de datos (Entrenamiento, modelado, normalizarlos, categóricos)
+
+
+<++>
 
 ### Resultados esperados del proceso
 (Interpretación)
@@ -128,63 +163,11 @@ Los programas que he usado para realizar estas tareas son:
 * tail
 * sort
 * NeoVim
-#
+
 #### En remoto
 
 Se usa un framework hecho por Google llamado colaboratory, que deja todo preparado para realizar análisis de datos para Aprendizaje Automático.
 Tiene la forma de los cuadernos Jupiter y permite tener código y texto en una misma vista.
-
-### Modificaciones sobre los datos
-
-#### Generación y formato del dataset
-
-Es importante extraer las propiedades que nos interesan en el dominio del problema al que nos encontramos, de lo contrario, sufriremos problemas de rendimiento, especialmente cuando tratamos con datasets muy grandes e incluso podemos llegar a generar un modelo menos preciso, debido a la cantidad de información irrelevante que introducimos en la generación del modelo.
-
-Se trata de hallar el punto intermedio que nos proporcione los mejores resultados posibles con la menor dimensionalidad posible.
-Existen multitud de estudios realizados únicamente pare hallar las mejores propiedades.
-Como esta no es nuestra finalidad, se procederá a determinar las propiedades por relevancia percibida.
-
-Las propiedades que vamos a extraer del dataset son:
-
-* epoch_date
-* Source
-* Destination
-* Protocol
-* Length
-* Info
-
-* `epoch_date` es importante porque cabe la posibilidad de que el programa se comunique con el servidor C&C de forma constante.
-* Aunque `Source` es aparentemente uno de los campos mas importantes, es posible que no sea tan relevante en la generación del modelo.
-Puede ser interesante hacer un estudio, para averiguar si es necesario tener dicho campo como propiedad, pero como no es nuestra prioridad, se incluye, a riesgo de sobreaprendizaje.
-Una de las consecuencias que temo, es que sobre aprenda dado que cada dirección IP genera un campo especifico de trafico.
-En un entorno de producción, esto no es lo común, ya que cada dirección IP genera mas variedad de trafico.
-* `Destination` es un indicador claro de un programa malicioso.
-Aunque estamos en una situación parecida a la mencionada anteriormente com `Source`, independientemente de la dirección IP desde la que se genera el trafico, la dirección `Destination` va a ser la misma, por tanto, si que se va a incluir esta propiedad.
-* `Protocol` Puede ser uno de los indicadores clave para identificar el malware, aunque en mi opinión, debería ser tratado como un comprobante, no como una primera decisión.
-* Al igual que la propiedad anterior, `Length` es un buen comprobante para revisar el tipo de paquete.
-* `Info` proporciona información adicional que se puede usar para discriminar un paquete malicioso.
-
-Los pasos que vamos a realizar para generar un dataset correcto para analizar los datos son los siguientes:
-
-* Extraer los datos necesarios de las capturas de red a archivos `.csv` independientes
-* Sanitizamos el dataset, para que los campos no tengan ningún símbolo prohibido
-* Añadimos una columna a cada dataset para indicar si son botnets o trafico de red convencional
-
-Para extraer los datos del dataset, hemos usado la herramienta `tshark`, que permite convertir flujos de red (Codificados en un archivo con extensión `.pcap`) en archivos `.csv`.
-Esta es la extensión que se usa para entrenar la red neuronal.
-
-El proceso anteriormente descrito, se realiza con el script llamado `extraction.sh`.
-
-Aunque se haga exactamente el mismo procedimiento en ambos bucles, es necesario distinguirlos porque tenemos que añadir una columna (y) a cada dataset, para indicar si es trafico malicioso o regular.
-
-Uno de los problemas al que me he tenido que enfrentar es que el archivo generado por la herramienta `tshark` es que a pesar de indicarle que los separadores de datos se codifican con el carácter `,`, ha incluido valores en los campos que incluyen el valor `,`. 
-Debido ha esto, se ha tenido que generar el script `sanitize.py`, que revisa el numero de apariciones de cada `,` en cada linea del archivo.
-Si es mayor al numero de columnas predefinidas, elimina el carácter del archivo.
-
-Ahora, queda añadir a cada archivo una columna para indicando si el paquete de red es uno benigno o malicioso.
-Este ejercicio aparece en el script `identifyAndsort.sh`.
-
-En este momento, tenemos los archivos de red benignos y los maliciosos organizados y configurados para ser analizados.
 
 #### Importación del dataset a Python
 
