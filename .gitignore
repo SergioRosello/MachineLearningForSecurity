@@ -1,2 +1,9 @@
 projects/ENV/
 projects/TrabajoFinal/Botnet/
+*.csv
+*.back
+*.backup
+*.zip
+projects/TrabajoFinal/isot_app_and_botnet_dataset/application_data/
+projects/TrabajoFinal/isot_app_and_botnet_dataset/botnet_data/
+

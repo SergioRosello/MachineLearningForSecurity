@@ -18,6 +18,8 @@ done
 head -n 1 network_malign_traffic.csv > merged_network_malign_traffic.csv
 tail -n +2 network_malign_traffic.csv >> merged_network_malign_traffic.csv
 
+first=true
+
 # Concatenate all the benign files
 for file in ./application_data/*.pcap; do
   echo "Processing $file"

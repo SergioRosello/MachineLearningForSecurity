@@ -299,16 +299,42 @@ Copiar los scripts:
 * `extraction.sh`
 * `sanitize.py`
 * `identifyAndsort.sh`
+* `prepareData.sh`
 
 Al directorio llamado `isot_app_and_botnet_dataset`.
 
+Una vez tenemos estos archivos en nuestro directorio, procedemos a **ejecutar el `script` `extraction.sh`.**
+Este script convierte todos los datos de `pcap` a `csv`. 
+Ademas, concatena todos los datasets con paquetes maliciosos en un dataset que contiene únicamente paquetes maliciosos y todos los datasets con trafico legitimo en un solo dataset que contiene únicamente paquetes legítimos.
+
+Seguimos **ejecutando el script `sanitize.py`**, que elimina las comas extra que contiene el campo `_ws.col.Info` y ademas, rellena los valores nulos con el valor *UNKNOWN*.
+
+Al terminar la operación anterior, añadimos una columna extra a cada uno de los datasets, para que el modelo pueda identificar que paquete de red es legitimo y cual es *Botnet*.
+Ademas, unimos y ordenamos por tiempo los paquetes de red.
+Esto se hace **ejecutando el comando identifyAndsort.sh**
+
+Como alternativa, se ha preparado un script que automáticamente genera los archivos indicados para importar con `Python`.
+**Ejecutando prepareData.sh**.
+Es necesario tener los requisitos necesarios por `Python` para ejecutar el script de `Python`.
+Estos están en el archivo `requirements.txt`.
+Para **instalar los requisitos, se ejecuta el comando `pip install -r requirements.txt`**
+
 ### Aplicación de los programas/scripts
+
+El script en el que se define el modelo y se entrena se llama `model.py`.
+
+Para **ejecutar este archivo, se puede usar el comando `python model.py`**
+
+Automáticamente, se encodea el dataset para poder usarse con el modelo, se genera el modelo, se entrena el mismo y se calcula el porcentaje de aciertos basándose en los datos de prueba.
 
 ### Casos comprobados y valores de datos iniciales y de parámetros
 
 ### Resultados obtenidos e interpretación de los datos
 
 ### Otros valores a revisar
+
+En esta practica se ha usado el modulo `sequential_model`, debido a que es una red neuronal sencilla, pero seria muy interesante entrenar el modelo con modelos mas avanzados, que contengan neuronas compartidas entre capas, distintas, entradas y salidas por capa o grafos de capas.
+TODO
 
 ## Posibles mejoras
 
@@ -344,3 +370,5 @@ Notes in Computer Science, vol 10618. Springer, Cham
     * `https://keras.io/guides/sequential_model/`
 * *Keras training and evaluation*:
     * `https://keras.io/guides/training_with_built_in_methods/`
+* *Keras functional model*:
+    * `https://keras.io/guides/functional_api/`
