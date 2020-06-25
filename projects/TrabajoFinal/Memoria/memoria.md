@@ -44,8 +44,6 @@ Los pasos que se realizan engloban de forma general cualquier problema de Machin
 
 ### Descripción y planteamiento del problema
 
-(Dificultades para resolverlos con métodos tradicionales)
-
 El problema que se plantea en este análisis es identificar trafico de red malicioso en una red a tiempo real.
 
 La solución debe poder analizar a tiempo real los paquetes generados por la red y decidir si cada paquete individual es o no un paquete proveniente de un malware.
@@ -65,11 +63,7 @@ Esto hace que sea imposible mantenerlo actualizado.
 Existen otras técnicas, no tan primitivas, como por ejemplo comprobación de hashes, tanto completos, como parciales del paquete de red.
 Si podemos identificar las características comunes en los paquetes de red enviados entre el malware y el servidor C&C, podemos cifrar estos datos en hashes, que se revisaran contra los paquetes de red a medida que pasan por la red.
 
-
 ### Descripción de los datos a utilizar
-
-(Entrenamiento y pruebas)
-(Fuente en caso real y fuente en este caso ficticio)
 
 Para desarrollar un modelo de detección de paquetes maliciosos, lo mas importante es la calidad de los datos iniciales que tenemos.
 Si generamos el modelo con datos buenos, el modelo puede inferir, en muchas ocasiones el trafico de red maligno.
@@ -116,13 +110,25 @@ En caso de que el modelo no detecte correctamente los paquetes maliciosos es obt
 
 ### Posibles algoritmos de aprendizaje automático a usar
 
+En la asignatura cursada, se han realizado estudios sobre algoritmos de 'clustering', Clasificación, Probabilidad y 'Del Learning'
+
+Teniendo en cuenta los algoritmos que se han aprendido durante el curso, se decide ahondar mas en los recursos sobre `Deep Learning`.
+
+Los motivos por esta selección, entre otros son:
+
+* Modelo adaptado al problema
+* Preferencia personal
 
 #### Breve comparación de los algoritmos estudiados
 (Como se realiza el proceso (Transformación de datos e interpretación)
 
-#### Por que Redes neuronales
+Hay dos grandes categorías de redes neuronales:
 
-Debido a una curiosidad por modelos basados en redes neuronales y a la cabida de los anteriores en un proyecto de detección de malware como este, se ha decidido optar por las redes neuronales como principal algoritmo de generación del modelo.
+* RNN (Recurrent Neural Networks)
+    * LSTM (Long Short-Term Memory)
+* CNN (Convolutional Neural Networks)
+
+#### Por que Redes neuronales
 
 Entre los distintos tipos de redes neuronales existentes, se ha optado por entrenar el modelo con <++>
 
@@ -139,18 +145,78 @@ Viendo las opciones anteriores, decidimos usar Keras, debido a su versatilidad y
 Este framework nos puede proporcionar la potencia de varios frameworks de redes neuronales como TensorFlow, Theano o CNTK.
 Nosotros vamos a usar Keras en combinación con TensorFlow para generar el modelo.
 
+Mas concretamente, vamos a usar el modelo `sequential_model` para generar nuestra red neuronal.
+
 #### Gestión de datos (Entrenamiento, modelado, normalizarlos, categóricos)
 
+Hay una serie de cambios que son necesarios hacer cuando se adapta un dataset de datos crudos a un dataset valido para ser la entrada de un modelo.
 
-<++>
+Los pasos que se van a tener que seguir son:
+
+* Seleccionar _features_ con las que nos quedamos
+* Convertir datos a `csv`
+* Sanado el dataset
+* Determinar datos categóricos y continuos
+* Codificar datos categóricos y continuos
+* Dividir el dataset en datos de prueba y entrenamiento
+
+##### Elección de 'features'
+
+Una de las decisiones mas importantes cuando seleccionamos un dataset es saber que los datos están disponibles de la forma mas pura posible.
+Esto hace que sea mas complicado trabajar con ellos desde un inicio, debido a que se tienen que convertir y mutar para que sirvan como datos de entrada al modelo, pero la ventaja que tienen es que no son específicos, es decir, los mismos datos, pueden servir para solucionar distintos problemas.
+
+En nuestro caso, al tener acceso a los datos en formato `pcap`, podemos decidir que datos nos interesan, de entre una gran variedad de posibilidades.
+
+##### Conversión de datos a csv
+
+Los algoritmos de aprendizaje automático como las redes neuronal usan una matriz como datos de entrada.
+Una de las formas mas similares a las matrices, son las tablas `csv`, en la que la relación es evidente.
+Se van a tener que mutar los datos crudos a datos con formato `csv`, que luego leeremos con `python` para importar a nuestro modelo.
+
+##### Sanado de dataset
+
+Es posible que el dataset generado tras convertir los datos de `pcap` a `csv` contenga errores.
+Un ejemplo de error es que cualquier campo no tenga valor.
+Si se detecta este error, debemos arreglarlo, ya que para las redes neuronales, es mejor que todos los campos tengan un valor. 
+En este caso, el valor nulo lo cambiamos a `UNKNOWN`.
+Todos estos errores deben ser contemplados y arreglados.
+
+##### Determinar datos categóricos y continuos
+
+Las variables categóricas son las que pueden obtener valores concretos, predefinidos dentro de una serie de posibilidades.
+
+Las variables continuas, son las que pueden obtener valores infinitos, es decir, existe una infinidad de valores continuos.
+Estas variables suelen ser numéricas.
+
+##### Codificar datos categóricos y continuos
+
+Tanto las variables categóricas como las continuas, se deben codificar de una forma especifica para que la red neuronal interprete los valores correctamente.
+
+Las formas mas populares de codificar las variables categóricas es con encodeado `one-hot`, mientras que las continuas, se pueden encodear normalizando sus valores.
+
+##### Dividir el dataset en entreno y test
+
+Es buena practica subdividir el dataset en dos.
+Estas dos secciones serán la sección de entreno y la sección de prueba.
+El modelo se entrena con la sección de entreno, pero se reserva una sección, por lo general del 30% del tamaño del dataset para revisar el modelo al acabar la fase de entreno.
+Una de las razones por las que se hace esto, es para asegurarnos que nuestro modelo funciona correctamente.
+Esto es porque hemos usado unos datos para entrenar a nuestro modelo, pero estos datos, ya los ha visto, y el modelo se ha configurado de acorde con estos.
+A nosotros nos interesa generar un modelo que sea capaz de decidir con datos que no se hayan usado nunca, ya que esta es su finalidad.
 
 ### Resultados esperados del proceso
-(Interpretación)
 
+Cuando se acabe de entrenar el modelo, este nos proporciona un porcentaje de acierto, basado en los datos de test.
+Este sera siempre nuestro limite superior de probabilidad de acierto.
+Una vez estemos satisfechos con este valor, si satisface nuestros requisitos a nivel de red, podremos desplegar el modelo.
 
 ## Implementación
 
 ### Programas utilizados
+
+Para realizar este ejercicio, se ha contado con una plataforma creada por Google específicamente para realizar proyectos de estas características.
+Aun así, todo lo que se puede ver a través del siguiente enlace <++>, se puede hacer desde el ordenador personal del lector.
+
+Se van a separar los programas utilizados en local y en la plataforma de Google.
 
 #### En local, Programas/Ayudas utilizadas
 
@@ -189,7 +255,7 @@ Los pasos que se toman para generara el dataset son:
 En este paso, se usa el método `read_csv` de `pandas`, pasándole los tipos de datos que se va a encontrar en cada columna, para optimizar mas la carga del dataset.
 Ademas, se le dice al método el numero de linea en el que se encuentra el nombre de cada columna.
 
-#### Preparar la table
+#### Preparar la tabla
 
 En esta sección, se codifican los datos categóricos y continuos en una matriz que el modelo es capaz de entender y utilizar.
 
@@ -213,6 +279,28 @@ Dicho esto, es probable que el modelo pueda inferir en mayor o menor medida traf
 ## Pruebas y resultados
 
 ### Proceso a seguir para obtener los datos
+
+Vamos a establecer el directorio principal desde el cual trabajaremos durante todo el ejercicio.
+De ahora en adelante, esta sera la carpeta base de esta practica. (`~/`)
+Este se llama: 
+
+> `TrabajoFinal`
+
+#### 1. Configuración del espacio de trabajo
+
+Descargamos el dataset desde la siguiente URL: [ISOT HTTP Botnet Database](https://drive.google.com/open?id=1LW-FNhgqTZfYswHSLPUxtwccwM75O4J4) a nuestro directorio raíz.
+
+Extraemos el dataset en este directorio, de forma que se crea un directorio llamado `isot_app_and_botnet_dataset`.
+
+#### 2. Tratado de datos
+
+Copiar los scripts:
+
+* `extraction.sh`
+* `sanitize.py`
+* `identifyAndsort.sh`
+
+Al directorio llamado `isot_app_and_botnet_dataset`.
 
 ### Aplicación de los programas/scripts
 
@@ -252,3 +340,7 @@ Notes in Computer Science, vol 10618. Springer, Cham
 * *read_csv*
     * `https://pandas.pydata.org/pandas-docs/
     stable/reference/api/pandas.read_csv.html`
+* *Keras sequential model*:
+    * `https://keras.io/guides/sequential_model/`
+* *Keras training and evaluation*:
+    * `https://keras.io/guides/training_with_built_in_methods/`
