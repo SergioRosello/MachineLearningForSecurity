@@ -329,6 +329,39 @@ Automáticamente, se encodea el dataset para poder usarse con el modelo, se gene
 
 ### Casos comprobados y valores de datos iniciales y de parámetros
 
+#### Modelo
+
+Se ha usado el modelo Secuencial, ya que proporciona la flexibilidad que se necesita y la facilidad de uso.
+En esta primera practica, me ha parecido interesante empezar desde la base.
+
+En futuras implementaciones, sin duda empezare a usar el API Funcional.
+
+##### Función de activación
+
+Se han usado dos funciones de activación desde el principio de la practica.
+Las funciones de activación determinan si una neurona cumple con los requisitos para activarse.
+Si sobrepasa la función de activación, esta neurona se activa y el flujo continua a través de esa neurona por la red neuronal.
+
+Los dos tipos de funciones de activación que se han usado son:
+
+* `relu`
+    * Es una mejora a la función de activación binaria.
+    * Es sencilla de aplicar, por tanto es rápida, buena para una primera capa
+    * Como desventaja, puede generar neuronas "muertas"
+* `sigmoid`
+    * Devuelve siempre un valor entre 0 y 1
+    * Valores gradualmente mas altos, devuelven valores mas próximos a 1 y viceversa
+
+#### Optimizadores
+
+Existen siete optimizadores distintos que el analista puede usar a la hora de compilar el modelo de red neuronal.
+Entre estos, el optimizador que se ha decidido usar es `adam`, debido a que según [kingma et al., 2014](http://arxiv.org/abs/1412.6980) "Es computacionalmente eficiente, no necesita mucha memoria, invariante al re-escalado diagonal de gradientes y es adecuado para problemas que tienen muchos datos/parámetros."
+
+#### Métricas 
+
+Cuando se ha compilado el modelo, se ha usado la métrica "accuracy" para saber el numero de veces que el modelo predice el "label".
+Esto es: Saber la frecuencia con la que el modelo acierta determinando el tipo de trafico que se ha comprobado.
+
 ### Resultados obtenidos e interpretación de los datos
 
 ### Otros valores a revisar
@@ -345,7 +378,16 @@ El inconveniente que introduce este método es que no es trafico de red verdader
 
 Otro inconveniente de la forma en la que se ha capturado el dataset es que los datos malignos se han capturado antes que los normales, haciendo que, si se ordena todo el dataset, todo el trafico de red este segmentado por naturaleza.
 
+Un problema persistente a lo largo de toda la practica ha sido la enorme cantidad de datos disponibles.
+Desde la adquisición de los mismos, pasando por su gestión, hasta su utilización con el modelo de red neuronal.
+
 # Comentarios sobre la realización de la actividad
+
+La actividad ha sido un ejercicio completo de tratado de datos para un propósito concreto.
+Ha sido muy interesante pasar por todas las fases a las que se enfrenta un analista de datos
+Sobre todo, darme cuenta que el manejo de datos y su correcta codificación consumen mas tiempo incluso que implementar el modelo.
+Mas aun si el analista tiene claro que modelo debe implementar para solucionar el problema.
+En mi experiencia, esta parte ha sido la mas complicada.
 
 # Bibliografía 
 

@@ -1,4 +1,6 @@
 import sys
+import re
+import pandas as pd 
 import fileinput
 
 def delete_extra_commas(file_name):
@@ -29,4 +31,5 @@ for file_name in sys.argv[1:]:
     print("Processing ", file_name)
     delete_extra_commas(file_name)
     remove_null_values(file_name)
+    # delete_invalid_entries(file_name)
 

@@ -1,0 +1,12 @@
+Choose an algorithm (model)
+
+Choose an algorithm, which will best fit for the type of learning process (e.g image classification, text processing, etc.,) and the available input data. Algorithm is represented by Model in Keras. Algorithm includes one or more layers. Each layers in ANN can be represented by Keras Layer in Keras.
+
+* Prepare data − Process, filter and select only the required information from the data.
+* Split data − Split the data into training and test data set. Test data will be used to evaluate the prediction of the algorithm / Model (once the machine learn) and to cross check the efficiency of the learning process.
+* Compile the model − Compile the algorithm / model, so that, it can be used further to learn by training and finally do to prediction. This step requires us to choose loss function and Optimizer. loss function and Optimizer are used in learning phase to find the error (deviation from actual output) and do optimization so that the error will be minimized.
+* Fit the model − The actual learning process will be done in this phase using the training data set.
+* Predict result for unknown value − Predict the output for the unknown input data (other than existing training and test data)
+* Evaluate model − Evaluate the model by predicting the output for test data and cross-comparing the prediction with actual result of the test data.
+* Freeze, Modify or choose new algorithm − Check whether the evaluation of the model is successful. If yes, save the algorithm for future prediction purpose. If not, then modify or choose new algorithm / model and finally, again train, predict and evaluate the model. Repeat the process until the best algorithm (model) is found.
+
