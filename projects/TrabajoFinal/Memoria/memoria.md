@@ -263,9 +263,31 @@ Funciona como una capa de unión entre los programas que el usuario tiene inclui
 Una de las utilidades mas importantes del mismo es la posibilidad de vincular la salida de datos de un programa directamente con la entrada de datos del siguiente.
 Esto permite al usuario crear cadenas de flujo de datos de una forma muy sencilla y eficiente.
 
-### Tratado de datos
+### Tratado de datos *Desde el dataset a la ingesta en Python*
 
-TODO: Acabar de describir lo que hace el script prepareData. 
+Desde el dataset plano, se realizan una serie de mutaciones sobre los datos para que sea mas sencillo operar sobre ellos directamente en el script Python `modeloSecuencial.py`.
+
+Estas alteraciones son:
+
+* Conversión
+* Saneado del dataset
+* Preparado para modelo
+
+#### Conversión
+
+Este proceso lo realiza el archivo bash llamado `prepareData.sh`.
+Este script convierte todos los datos de `pcap` a `csv`. 
+Ademas, concatena todos los datasets con paquetes maliciosos en un dataset que contiene únicamente paquetes maliciosos y todos los datasets con trafico legitimo en un solo dataset que contiene únicamente paquetes legítimos.
+
+#### Saneado del dataset
+
+El proceso de saneado lo asume el script `sanitize.py` pasándole por parámetros los archivos que se quieran sanear.
+
+Las acciones que realiza son:
+
+* Eliminación de columnas sobrantes introducidas por el comando `tshark`
+* Sustitución de valores nulos por predefinidos (`UNKNOWN`)
+* Eliminar tuplas invalidas
 
 En el caso de nuestro dataset, el programa `tshark` genera muchas entradas corruptas relacionadas con la dirección `IP` `192.168.50.17`.
 El error se puede detectar analizando el campo `frame.len` en busca de una dirección `IP`.
@@ -279,7 +301,15 @@ Eliminado esta duplicidad, se hubiese podido contar con estas tuplas.
 
 Se ha decidido eliminar las ocurrencias corruptas, debido a que tenemos mucha variedad de datos.
 
+#### Preparado para modelo
 
+El script `identifyAndsort.sh` se encarga de añadir una columna extra al dataset, para indicar al modelo que paquetes de red son los maliciosos y cuales los legítimos.
+Ahora que ya tenemos identificada cada tupla con su clase (Si es Botnet o no) podemos unir ambos archivos para posteriormente ordenarlos por el campo `frame.time_epoch`.
+
+Realmente no es necesario ordenar el archivo, pero se ha decidido hacerlo de esta forma por tener un archivo con los datos ordenados.
+En el script `modeloSecuencial.py` ya vamos a obtener un extracto del archivo de forma aleatoria, asegurándonos una buena muestra.
+
+Todos los archivos anteriores se encuentran agrupados en un script llamado `prepareData.sh` para agilizar el proceso.
 
 ### Elección del framework
 
@@ -356,21 +386,13 @@ Copiar los scripts:
 
 Al directorio llamado `isot_app_and_botnet_dataset`.
 
-Una vez tenemos estos archivos en nuestro directorio, procedemos a **ejecutar el `script` `extraction.sh`.**
-Este script convierte todos los datos de `pcap` a `csv`. 
-Ademas, concatena todos los datasets con paquetes maliciosos en un dataset que contiene únicamente paquetes maliciosos y todos los datasets con trafico legitimo en un solo dataset que contiene únicamente paquetes legítimos.
+1. Una vez tenemos estos archivos en nuestro directorio, procedemos a **ejecutar el `script` `extraction.sh`.**
+1. Seguimos **ejecutando el script `sanitize.py`** con el nombre de los archivos que queremos sonetizar. En nuestro caso, `merged_network_benign_traffic.csv` y `merged_network_malign_traffic.csv.`
+1. Para finalizar, **ejecutamos el comando identifyAndsort.sh**
 
-Seguimos **ejecutando el script `sanitize.py`**, que elimina las comas extra que contiene el campo `_ws.col.Info` y ademas, rellena los valores nulos con el valor *UNKNOWN* y revisa el archivo en busca de entradas corruptas.
+Como alternativa, se ha preparado un script que engloba los pasos anteriores en uno, para directamente poder importar con el script del modelo `modeloSecuencial.py`.
+Simplemente **Ejecutamos prepareData.sh**, se ejecutan todos los scripts anteriores.
 
-Al terminar la operación anterior, añadimos una columna extra a cada uno de los datasets, para que el modelo pueda identificar que paquete de red es legitimo y cual es *Botnet*.
-Ademas, unimos y ordenamos por tiempo los paquetes de red.
-Esto se hace **ejecutando el comando identifyAndsort.sh**
-
-Como alternativa, se ha preparado un script que automáticamente genera los archivos indicados para importar con `Python`.
-**Ejecutando prepareData.sh**.
-Es necesario tener los requisitos necesarios por `Python` para ejecutar el script de `Python`.
-Estos están en el archivo `requirements.txt`.
-Para **instalar los requisitos, se ejecuta el comando `pip install -r requirements.txt`**
 
 ### Limitaciones/restricciones en la implementación
 
@@ -537,6 +559,8 @@ Mas aun si el analista tiene claro que modelo debe implementar para solucionar e
 En mi experiencia, esta parte ha sido la mas complicada.
 
 # Bibliografía 
+
+TODO: Corregir bibliografía
 
 * *Neural networks*:
     * `https://scikit-learn.org/stable/modules/
