@@ -54,15 +54,9 @@ def prepare_input(X):
       [('oh_enc', OneHotEncoder(sparse=False), [0, 1, 2, 4]),],  # the column numbers I want to apply this to
       remainder='passthrough'  # This leaves the rest of my columns in place
     )
-    print("Finished columnTransformer")
     X_transformed = ct.fit_transform(X)
-    print("Finished ct.fit_transform")
-    print("X_transformed preprocessing")
-    print(X_transformed[:, [-1]])
     normalized_X = preprocessing.normalize(X_transformed[:, [-1]], axis=0)
-    print("Finished processing.normalize")
     X_enc = np.append(X_transformed[:, 0:-1], normalized_X, axis=1)
-
     return X_enc
   
 import numpy as np
@@ -70,13 +64,9 @@ from sklearn import preprocessing
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.compose import ColumnTransformer
 
-print(X)
-
 X_train_enc = prepare_input(X_train)
 X_test_enc = prepare_input(X_test)
 
-print(X_train_enc)
-print(X_test_enc)
 
 # prepare target
 def prepare_targets(y_train, y_test):
@@ -95,7 +85,8 @@ from keras.models import Sequential
 from keras.layers import Dense
 
 model = Sequential()
-model.add(Dense(10, input_dim=X_train_enc.shape[1], activation='relu', kernel_initializer='he_normal'))
+#model.add(Dense(10, input_dim=X_train_enc.shape[1], activation='relu', kernel_initializer='he_normal'))
+model.add(Dense(10, input_dim=492, activation='relu', kernel_initializer='he_normal'))
 model.add(Dense(1, activation='sigmoid'))
 
 model.summary()

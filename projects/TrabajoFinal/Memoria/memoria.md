@@ -155,7 +155,7 @@ Los pasos que se van a tener que seguir son:
 
 * Seleccionar _features_ con las que nos quedamos
 * Convertir datos a `csv`
-* Sanado el dataset
+* Sanado de el dataset
 * Determinar datos categóricos y continuos
 * Codificar datos categóricos y continuos
 * Dividir el dataset en datos de prueba y entrenamiento
@@ -180,6 +180,14 @@ Un ejemplo de error es que cualquier campo no tenga valor.
 Si se detecta este error, debemos arreglarlo, ya que para las redes neuronales, es mejor que todos los campos tengan un valor. 
 En este caso, el valor nulo lo cambiamos a `UNKNOWN`.
 Todos estos errores deben ser contemplados y arreglados.
+
+En este dataset en concreto, los pasos que hemos tenido que hacer para sanar el dataset son:
+
+* Eliminar las columnas extra introducidas por la herramienta de extracción de "features"
+* Eliminar los valores nulos en el dataset
+* Eliminar las tuplas que contienen información corrupta, en este caso, ha habido un problema con la herramienta de extracción de features `tshark`, en la que ha introducido dos veces las columnas de `ip.src` e `ip.dst`.
+
+Los pasos de sanado se encuentran en el script `sanitize.py` incluido en la entrega de la practica.
 
 ##### Determinar datos categóricos y continuos
 
