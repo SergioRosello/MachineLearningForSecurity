@@ -6,4 +6,5 @@ projects/TrabajoFinal/Botnet/
 *.zip
 projects/TrabajoFinal/isot_app_and_botnet_dataset/application_data/
 projects/TrabajoFinal/isot_app_and_botnet_dataset/botnet_data/
+*.vim
 

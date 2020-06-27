@@ -83,6 +83,7 @@ Las cualidades que se necesitan en el dataset son:
 * Trafico de malware hacia servidores C&C
 * Trafico de aplicaciones no maliciosas
 * Cantidad de información (Necesario para poder inferir comportamientos y generar modelos de datos)
+* Calidad de información (Ejemplos de trafico claro)
 
 Siguiendo los requisitos demarcados anteriormente, se han encontrado varios datasets, entre estos, se va a usar `ISOT HTTP Botnet Dataset`, desarrollado por Alenazi A y compañeros para una charla con titulo: "Intelligent, Secure, and Dependable Systems in Distributed and Cloud Environments".
 
@@ -120,7 +121,8 @@ Los motivos por esta selección, entre otros son:
 * Preferencia personal
 
 #### Breve comparación de los algoritmos estudiados
-(Como se realiza el proceso (Transformación de datos e interpretación)
+
+TODO
 
 Hay dos grandes categorías de redes neuronales:
 
@@ -132,22 +134,7 @@ Hay dos grandes categorías de redes neuronales:
 
 Entre los distintos tipos de redes neuronales existentes, se ha optado por entrenar el modelo con <++>
 
-#### Elección del framework
-
-A la hora de generar el modelo, nos encontramos con varias opciones para llegar a la misma finalidad.
-Entre las opciones, tenemos:
-
-* SciKit, un framework de aprendizaje automático
-* PyTorch, un framework de aprendizaje profundo
-* Keras, un framework de aprendizaje profundo
-
-Viendo las opciones anteriores, decidimos usar Keras, debido a su versatilidad y abstracción de los algoritmos de aprendizaje profundo.
-Este framework nos puede proporcionar la potencia de varios frameworks de redes neuronales como TensorFlow, Theano o CNTK.
-Nosotros vamos a usar Keras en combinación con TensorFlow para generar el modelo.
-
-Mas concretamente, vamos a usar el modelo `sequential_model` para generar nuestra red neuronal.
-
-#### Gestión de datos (Entrenamiento, modelado, normalizarlos, categóricos)
+#### Gestión de datos (Entrenamiento, modelado, normalización, categorización)
 
 Hay una serie de cambios que son necesarios hacer cuando se adapta un dataset de datos crudos a un dataset valido para ser la entrada de un modelo.
 
@@ -196,6 +183,17 @@ Las variables categóricas son las que pueden obtener valores concretos, predefi
 Las variables continuas, son las que pueden obtener valores infinitos, es decir, existe una infinidad de valores continuos.
 Estas variables suelen ser numéricas.
 
+En nuestro caso, las variables categóricas son:
+
+* `ip.src`
+* `ip.dst`
+* `_ws.col.Protocol`
+* `_ws.col.Info`
+
+La variable continua que tenemos es:
+
+* `frame.len`
+
 ##### Codificar datos categóricos y continuos
 
 Tanto las variables categóricas como las continuas, se deben codificar de una forma especifica para que la red neuronal interprete los valores correctamente.
@@ -205,6 +203,7 @@ Las formas mas populares de codificar las variables categóricas es con encodead
 ##### Dividir el dataset en entreno y test
 
 Es buena practica subdividir el dataset en dos.
+
 Estas dos secciones serán la sección de entreno y la sección de prueba.
 El modelo se entrena con la sección de entreno, pero se reserva una sección, por lo general del 30% del tamaño del dataset para revisar el modelo al acabar la fase de entreno.
 Una de las razones por las que se hace esto, es para asegurarnos que nuestro modelo funciona correctamente.
@@ -217,31 +216,85 @@ Cuando se acabe de entrenar el modelo, este nos proporciona un porcentaje de aci
 Este sera siempre nuestro limite superior de probabilidad de acierto.
 Una vez estemos satisfechos con este valor, si satisface nuestros requisitos a nivel de red, podremos desplegar el modelo.
 
+Una vez despleguemos el modelo en nuestro entorno de producción, debemos estar al corriente de los paquetes de red que marca como `Botnets`.
+Si implementamos un IDS, podemos programar un servicio que nos notifique mediante correo electrónico o incluso por un canal de Slack, una plataforma de gestión de trabajo.
+
+
+
+
+
+
+
 ## Implementación
 
 ### Programas utilizados
 
-Para realizar este ejercicio, se ha contado con una plataforma creada por Google específicamente para realizar proyectos de estas características.
-Aun así, todo lo que se puede ver a través del siguiente enlace <++>, se puede hacer desde el ordenador personal del lector.
+Para realizar este ejercicio, se ha contado con una plataforma creada por Google específicamente para realizar proyectos de estas características.  Una vez realizado, se ha descargado y ejecutado en mi maquina local, para asegurar que todas las fases funcionan correctamente.
 
-Se van a separar los programas utilizados en local y en la plataforma de Google.
-
-#### En local, Programas/Ayudas utilizadas
-
-Los programas que he usado para realizar estas tareas son:
-
-* Python
-* bash
-* tshark
-* head
-* tail
-* sort
-* NeoVim
+La limitación de la plataforma de Google es que, al usar la capa gratuita, te proporcionan una maquina con poca RAM y procesador.
+Por este motivo, se han tenido que hacer algunas modificaciones desde la descarga del archivo de la plataforma de Google a la plataforma local.
+Uno de los mas evidentes, es el dataset.
+A la plataforma, estaba subiendo una muestra pequeña del original.
+Ahora, esto lo hago directamente desde el código.
 
 #### En remoto
 
 Se usa un framework hecho por Google llamado colaboratory, que deja todo preparado para realizar análisis de datos para Aprendizaje Automático.
 Tiene la forma de los cuadernos Jupiter y permite tener código y texto en una misma vista.
+
+
+#### En local, Programas/Ayudas utilizadas
+
+En esta practica, se han usado varias tecnologías.
+Las mas importantes son: 
+
+* Python
+* Keras con TensorFlow
+* Bash
+
+En relación a Python, podíamos usar la versión 2 o 3 del mismo lenguaje de programación.
+Se ha decidido usar la versión 3 ya que es lo recomendado por la comunidad.
+
+En relación a Keras, este es el framework mas utilizado para codificar modelos de redes neuronales.
+Se describe su elección en mas detalle en la sección: 'Elección del framework'.
+
+En relación a Bash, es un lenguaje de scripting muy potente.
+Funciona como una capa de unión entre los programas que el usuario tiene incluidos en su "Path".
+Una de las utilidades mas importantes del mismo es la posibilidad de vincular la salida de datos de un programa directamente con la entrada de datos del siguiente.
+Esto permite al usuario crear cadenas de flujo de datos de una forma muy sencilla y eficiente.
+
+### Tratado de datos
+
+TODO: Acabar de describir lo que hace el script prepareData. 
+
+En el caso de nuestro dataset, el programa `tshark` genera muchas entradas corruptas relacionadas con la dirección `IP` `192.168.50.17`.
+El error se puede detectar analizando el campo `frame.len` en busca de una dirección `IP`.
+Algunas formas en las que se hubiese podido tratar las entradas corruptas son:
+
+* Eliminado
+* Acondicionado/Arreglado
+
+En nuestro caso, analizando las entradas corruptas, se puede observar que cada una contiene los campos `ip.src` e `ip.dst` duplicados. 
+Eliminado esta duplicidad, se hubiese podido contar con estas tuplas.
+
+Se ha decidido eliminar las ocurrencias corruptas, debido a que tenemos mucha variedad de datos.
+
+
+
+### Elección del framework
+
+A la hora de generar el modelo, nos encontramos con varias opciones para llegar a la misma finalidad.
+Entre las opciones, tenemos:
+
+* SciKit, un framework de aprendizaje automático
+* PyTorch, un framework de aprendizaje profundo
+* Keras, un framework de aprendizaje profundo
+
+Viendo las opciones anteriores, decidimos usar Keras, debido a su versatilidad y abstracción de los algoritmos de aprendizaje profundo.
+Este framework nos puede proporcionar la potencia de varios frameworks de redes neuronales como TensorFlow, Theano o CNTK.
+Nosotros vamos a usar Keras en combinación con TensorFlow para generar el modelo.
+
+Mas concretamente, vamos a usar el modelo `sequential_model` para generar nuestra red neuronal.
 
 #### Importación del dataset a Python
 
@@ -255,15 +308,16 @@ Para realizar este paso, usamos la codificación `one-hot`.
 Los datos continuos, debemos normalizarlos, para eso, tenemos que asignar 0 al valor mas bajo y 1 al valor mas alto.
 Una vez tengamos el dataset tratado para ser ingerido por el modelo de la red neuronal, podemos empezar a entrenar, con un 70% del dataset, para posteriormente revisar con un 30% del dataset.
 
-La parte del script que genera esta nueva matriz se encuentra en el documento de Google llamado `PracticaFinal.ipynb`.
-Los pasos que se toman para generara el dataset son:
+A excepción de la fase de tratado de datos y preparado del dataset, todas la demás fases, están en el archivo llamado: `modeloSecuencial.py`.
+
+Los pasos que se toman para generar el dataset son:
 
 #### Leer el `.csv`
 
 En este paso, se usa el método `read_csv` de `pandas`, pasándole los tipos de datos que se va a encontrar en cada columna, para optimizar mas la carga del dataset.
 Ademas, se le dice al método el numero de linea en el que se encuentra el nombre de cada columna.
 
-#### Preparar la tabla
+#### Preparar los datos de entrada para el modelo
 
 En esta sección, se codifican los datos categóricos y continuos en una matriz que el modelo es capaz de entender y utilizar.
 
@@ -272,21 +326,12 @@ Los métodos que se han usado para cifrar los datos son:
 * _OneHotEncoder_ de sklearn.preprocessing
 * _Normalize_ de sklearn.preprocessing
 
+Durante la codificación del script, uno de los errores que había cometido era dividir el dataset en datos de entrenamiento y testeo antes de preparar el dataset.
+El error con el que me estaba encontrando era que el tamaño del dataset de entrada para revisar el modelo no era el mismo que el tamaño que el dataset de entrenamiento del modelo, por tanto, no se podía revisar el modelo con los datos de prueba.
+
+Al darme cuenta de este fallo, se convierten previamente todos los datos de entrada al modelo antes de subdividir el dataset en datos de entrenamiento y datos de testeo.
+
 ### Pasos de ejecución
-
-Con el dataset incluido en la entrega del presente documento, seria suficiente cargar el entorno de Google colaboratory y ejecutar uno a uno los bloques.
-
-En caso de no querer usar el entorno on-linea, se puede llegar al mismo resultado ejecutando los bloques de código presentes en la plataforma on-linea o el script con el nombre `model.py`.
-
-### Limitaciones/restricciones en la implementación
-
-Este modelo es capaz de discriminar los paquetes de red maliciosos de los comunes teniendo en cuenta el grupo reducido de paquetes que se ha usado.
-A día de hoy, no se puede asegurar el funcionamiento del modelo con datos o programas maliciosos cuyo trafico no se ha capturado y utilizado para generar el modelo.
-Dicho esto, es probable que el modelo pueda inferir en mayor o menor medida trafico no revisado anteriormente.
-
-## Pruebas y resultados
-
-### Proceso a seguir para obtener los datos
 
 Vamos a establecer el directorio principal desde el cual trabajaremos durante todo el ejercicio.
 De ahora en adelante, esta sera la carpeta base de esta practica. (`~/`)
@@ -315,7 +360,7 @@ Una vez tenemos estos archivos en nuestro directorio, procedemos a **ejecutar el
 Este script convierte todos los datos de `pcap` a `csv`. 
 Ademas, concatena todos los datasets con paquetes maliciosos en un dataset que contiene únicamente paquetes maliciosos y todos los datasets con trafico legitimo en un solo dataset que contiene únicamente paquetes legítimos.
 
-Seguimos **ejecutando el script `sanitize.py`**, que elimina las comas extra que contiene el campo `_ws.col.Info` y ademas, rellena los valores nulos con el valor *UNKNOWN*.
+Seguimos **ejecutando el script `sanitize.py`**, que elimina las comas extra que contiene el campo `_ws.col.Info` y ademas, rellena los valores nulos con el valor *UNKNOWN* y revisa el archivo en busca de entradas corruptas.
 
 Al terminar la operación anterior, añadimos una columna extra a cada uno de los datasets, para que el modelo pueda identificar que paquete de red es legitimo y cual es *Botnet*.
 Ademas, unimos y ordenamos por tiempo los paquetes de red.
@@ -327,11 +372,53 @@ Es necesario tener los requisitos necesarios por `Python` para ejecutar el scrip
 Estos están en el archivo `requirements.txt`.
 Para **instalar los requisitos, se ejecuta el comando `pip install -r requirements.txt`**
 
+### Limitaciones/restricciones en la implementación
+
+Este modelo es capaz de discriminar los paquetes de red maliciosos de los comunes teniendo en cuenta el grupo reducido de paquetes que se ha usado.
+A día de hoy, no se puede asegurar el funcionamiento del modelo con datos o programas maliciosos cuyo trafico no se ha capturado y utilizado para generar el modelo.
+Dicho esto, es probable que el modelo pueda inferir en mayor o menor medida trafico no revisado anteriormente, ya que es justo el dominio de las redes neuronales.
+
+Una de las limitaciones a la hora de realizar esta implementación ha sido la ingente cantidad de datos que contiene el dataset.
+El archivo de texto plano que contiene todos los paquetes del dataset tiene en torno a diez millones de entrada, esto son en torno a 10 millones de datos sobre paquetes de red.
+Para analizar todos estos datos, al menos de la forma en la que se ha procedido en esta ocasión, se hubiese necesitado un ordenador muy capaz, con mas de siete TiB de memoria.
+
+
+
+
+
+
+
+
+
+
+## Pruebas y resultados
+
+### Proceso a seguir para obtener los datos
+
+1. Descarga de los archivos desde mi [repositorio de GitHub: sergiorosello](https://github.com/SergioRosello/MachineLearningForSecurity/tree/master/projects/TrabajoFinal) o desde la entrega proporcionada a través de AlF.
+1. Descarga del dataset desde [ISOT HTTP Botnet Database](https://drive.google.com/open?id=1LW-FNhgqTZfYswHSLPUxtwccwM75O4J4)
+1. Ejecutar el script proporcionado en la entrega llamado `prepareData.sh`.
+
+Al llegar a este punto, se habrá generado un archivo llamado `sorted_merged_traffic.csv`.
+El programa de Python en el que se encuentra el modelo se encarga de extraer una muestra de los datos dentro del dataset, ya saneado.
+
 ### Aplicación de los programas/scripts
 
-El script en el que se define el modelo y se entrena se llama `model.py`.
+El script en el que se define el modelo y se entrena se llama `modeloSecuencial.py`.
 
-Para **ejecutar este archivo, se puede usar el comando `python model.py`**
+Para **ejecutar este archivo, se puede usar el comando `python modeloSecuencial.py`**
+
+Este script se encarga de:
+
+* Leer una fracción del dataset de forma optimizada
+* Separar el nuevo dataset en datos de entrada y salida
+* Preparar los datos de entrada (Tanto los de prueba como los de entrenamiento)
+* Subdividir el dataset en datos de entrada de prueba y entrenamiento y datos de salida de prueba y entrenamiento
+* Definir el modelo
+* Definir las capas de la red neuronal
+* Compilar el modelo
+* Entrenar el modelo
+* Evaluar el rendimiento del modelo
 
 Automáticamente, se encodea el dataset para poder usarse con el modelo, se genera el modelo, se entrena el mismo y se calcula el porcentaje de aciertos basándose en los datos de prueba.
 
@@ -344,7 +431,7 @@ En esta primera practica, me ha parecido interesante empezar desde la base.
 
 En futuras implementaciones, sin duda empezare a usar el API Funcional.
 
-##### Función de activación
+#### Función de activación
 
 Se han usado dos funciones de activación desde el principio de la practica.
 Las funciones de activación determinan si una neurona cumple con los requisitos para activarse.
@@ -370,12 +457,64 @@ Entre estos, el optimizador que se ha decidido usar es `adam`, debido a que seg�
 Cuando se ha compilado el modelo, se ha usado la métrica "accuracy" para saber el numero de veces que el modelo predice el "label".
 Esto es: Saber la frecuencia con la que el modelo acierta determinando el tipo de trafico que se ha comprobado.
 
+
 ### Resultados obtenidos e interpretación de los datos
+
+En la primera prueba que se han realizado:
+
+* **Modelo:** Secuencial
+* **Capas:**
+    * Dense, 32 neuronas, activación relu, kernel_initializer he_normal
+    * Dense, 1 neurona, activación sigmoide
+* **Compilacion:**
+    * Loss binary_crossentropy, optimizador adam, metrics accuracy
+* **Entreno:**
+    * Epochs 10
+    * batch_size 16
+
+Se ha llegado a una precisión del 96% en el ultimo 'epoch' del entrenamiento, pero se ha obtenido un 94% de acierto usando el modelo con los datos de test.
+Estos datos son bastante buenos.
+
+A partir de estos datos se ha procedido a cambiar los parámetros de la red neuronal para ajustarla mejor. (Desde función de activación, Optimizadores, nuevas capas, de distintos tipos)
+
+El máximo porcentaje de acierto que se ha conseguido ha sido con el modelo presentado.
+
+TODO: Cambiar los datos del modelo presentado
+
+* **Modelo:** Secuencial
+* **Capas:**
+    * Dense, 32 neuronas, activación relu, kernel_initializer he_normal
+    * Dense, 1 neurona, activación sigmoide
+* **Compilacion:**
+    * Loss binary_crossentropy, optimizador adam, metrics accuracy
+* **Entreno:**
+    * Epochs 10
+    * batch_size 16
 
 ### Otros valores a revisar
 
 En esta practica se ha usado el modulo `sequential_model`, debido a que es una red neuronal sencilla, pero seria muy interesante entrenar el modelo con modelos mas avanzados, que contengan neuronas compartidas entre capas, distintas, entradas y salidas por capa o grafos de capas.
-TODO
+
+La fase de elección y tratado de datos de entrada para el modelo es una de las mas importantes a la hora de realizar un buen modelo.
+Por este motivo, me hubiese gustado poder variar los datos de entrada.
+Como ejemplo, en vez de usar un extracto proporcional de datos de entrada (Teniendo en cuenta que hay mucho mas trafico de botnets que convencional) usar datos de entrada que contengan el mismo numero de paquetes de Botnet como de paquetes de red convencionales.
+
+Creo que de esta forma, el modelo hubiese tenido mas variedad de información.
+Quizá, una posible consecuencia es esto es que hubiese salido mas general.
+Entiendo que no, porque los datos que se han seleccionado del dataset, no han sido de un mismo Botnet, sino un extracto de todos los datos.
+De todas formas, me quedo con la duda.
+
+
+
+
+
+
+
+
+
+
+
+
 
 ## Posibles mejoras
 
