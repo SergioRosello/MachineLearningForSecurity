@@ -43,11 +43,6 @@ X = X.astype(str)
 # reshape target to be a 2d array
 y = y.reshape((len(y), 1)) # (Es necesario?)
 
-"""Entrenamos los datos, de esta forma, tenemos las variables que necesitamos para mas adelante."""
-
-from sklearn.model_selection import train_test_split
-
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.30)
 
 def prepare_input(X):
     ct = ColumnTransformer(
@@ -64,9 +59,13 @@ from sklearn import preprocessing
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.compose import ColumnTransformer
 
-X_train_enc = prepare_input(X_train)
-X_test_enc = prepare_input(X_test)
+X = prepare_input(X)
 
+"""Entrenamos los datos, de esta forma, tenemos las variables que necesitamos para mas adelante."""
+
+from sklearn.model_selection import train_test_split
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.30)
 
 # prepare target
 def prepare_targets(y_train, y_test):
@@ -85,8 +84,13 @@ from keras.models import Sequential
 from keras.layers import Dense
 
 model = Sequential()
-#model.add(Dense(10, input_dim=X_train_enc.shape[1], activation='relu', kernel_initializer='he_normal'))
-model.add(Dense(10, input_dim=492, activation='relu', kernel_initializer='he_normal'))
+# Input layer
+# 32 neurons
+# input_shape 16
+    # To specify the data structure the neural network data will be sent to the model
+# Relu activation
+# 
+model.add(Dense(32, input_dim=X_train.shape[1], activation='relu', kernel_initializer='he_normal'))
 model.add(Dense(1, activation='sigmoid'))
 
 model.summary()
@@ -94,13 +98,16 @@ model.summary()
 """Model Training and Evaluation phase"""
 
 # compile the keras model
+print("Compiling the Keras model")
 model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
 # fit the keras model on the dataset
-model.fit(X_train_enc, y_train_enc, epochs=10, batch_size=16, verbose=2)
+print("Fitting the Keras model")
+model.fit(X_train, y_train, epochs=10, batch_size=16, verbose=2)
 
 from keras.utils import print_summary
 print_summary(model)
 
 # evaluate the keras model
-_, accuracy = model.evaluate(X_test_enc, y_test_enc, verbose=0)
+print("evaluating the Keras model")
+_, accuracy = model.evaluate(X_test, y_test, verbose=0)
 print('Accuracy: %.2f' % (accuracy*100))
