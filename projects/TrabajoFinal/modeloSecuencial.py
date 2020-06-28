@@ -78,12 +78,11 @@ from keras.layers import Dense
 
 model = Sequential()
 # Input layer
-# 32 neurons
-# input_shape 16
-    # To specify the data structure the neural network data will be sent to the model
+# 128 -> Dinemsionality of output space
+# input_dim -> The number of inputs in first array
 # Relu activation
 # 
-model.add(Dense(32, input_dim=X_train.shape[1], activation='relu', kernel_initializer='he_normal'))
+model.add(Dense(1, input_dim=X_train.shape[1], activation='relu', kernel_initializer='he_normal'))
 model.add(Dense(1, activation='sigmoid'))
 
 model.summary()
@@ -95,7 +94,9 @@ print("Compiling the Keras model")
 model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
 # fit the keras model on the dataset
 print("Fitting the Keras model")
-model.fit(X_train, y_train, epochs=10, batch_size=16, verbose=2)
+# Batch gradient descent
+# The number of batches is equal to the number of training set
+model.fit(X_train, y_train, epochs=15, batch_size=X_train.shape[1], verbose=2)
 
 from keras.utils import print_summary
 print_summary(model)

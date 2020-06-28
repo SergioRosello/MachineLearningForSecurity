@@ -132,10 +132,13 @@ Teniendo en cuenta los algoritmos que se han aprendido durante el curso, se deci
 Los motivos por esta selección, entre otros son:
 
 * Modelo adaptado al problema
+* Mas sencillo que el problema con el enfoque tradicional (Secuencial)
 * Manejo de datos eficiente
-* Preferencia personal
+* Versatilidad
 
-TODO: Acabar de definir por que se han seleccionado las redes neuronales para solucionar este problema.
+Los modelos secuenciales, aunque igual de eficientes y rápidos de implementar que los modelos neuronales con datasets sencillos y pequeños, empiezan a aumentar en complejidad a medida que los modelos aumentan en tamaño y complejidad. 
+Los modelos de redes neuronales no tienen esa desventaja, ya que una vez se ha realizado la primera implementación, modificarla para que acomode mas datos es trivial.
+Mas aun con los frameworks de los que disponemos, como Keras o TensorFlow.
 
 #### Breve comparación de los modelos y paradigmas
 
@@ -185,7 +188,11 @@ La que se va a implementar en esta practica no es tan sofisticada como las descr
 
 #### Por que Redes neuronales
 
-Entre los distintos tipos de redes neuronales existentes, se ha optado por entrenar el modelo con <++>
+Se podría usar clustering para solventar el problema, pero tenemos demasiados datos, que desaprovecharíamos si usáramos un algoritmo de clustering.
+Digo esto porque Clustering es un algoritmo de aprendizaje no supervisado, mientras que nosotros tenemos la capacidad de implementar un algoritmo supervisado, porque sabemos a que clase `Botnet` pertenece cada tupla.
+Ademas, clustering agrupa datos basándose en una combinación de características que componen un paquete en este caso, pero como hemos dicho anteriormente, ya sabemos como debemos agrupar los datos.
+
+Entre los distintos tipos de redes neuronales existentes, se ha optado por entrenar el modelo con capas Dense, que son la forma mas básica de generar una red neuronal.
 
 #### Gestión de datos (Entrenamiento, modelado, normalización, categorización)
 
@@ -470,23 +477,49 @@ De entre las capas Core:
 * Lambda
 
 Se ha optado por usar las capas `Dense`.
-Esta capa es la mas básica de todas.
+Esta capa es la mas básica de todas, pero bastara para clasificación que queremos hacer.
 
 A la primera capa se le pasa la dimensión de los datos de entrada, que se obtiene dinámicamente según el dataset de entrada `X_train`.
 
 #### Compilado del modelo
 
+El modelo se compila con el comando:
+
+`model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])`
+
+Se ha decidido TODO: Acabar
+
 #### Entrenamiento del modelo
+
+Cuando modelo esta definido y compilado, se tiene que entrenar, para generar las predicciones.
+Esto pasa en esta parte.
+El comando que se usa es:
+
+`model.fit(X_train, y_train, epochs=15, batch_size=X_train.shape[1], verbose=2)`
+
+Los parámetros se explican en la fase de pruebas y resultados.
 
 #### Evaluación de rendimiento del modelo
 
+El comando que se usa para evaluar el modelo seleccionado es:
+
+`_, accuracy = model.evaluate(X_test, y_test, verbose=0)`
+
+En esta parte es donde realmente se revisa que el modelo ha aprendido correctamente y no ha sobreaprendido.
+Al revisar el modelo con datos completamente nuevos para el, podemos asegurar su correcto entrenamiento.
+
+Este es el paso que determina si el modelo esta listo para ser desplegado a producción.
+Una vez haya cumplido con los margenes de error estipulados con anterioridad, podemos desplegarlo con confianza.
+
 #### Guardado del modelo a disco
 
+Para poder desplegar el modelo, tenemos que poder guardarlo en el disco.
+Este es un archivo que contiene la información que ha sido generada en la fase de entrenamiento (`model.fit`).
 
+El comando que ejecuta esta acción es:
+`model.save('modeloSecuencial.h5')`
 
-
-
-TODO: Acabar de describir lo que hace el script `modeloSecuencial.py`
+TODO: Revisar
 
 ### Pasos de ejecución
 
@@ -600,7 +633,7 @@ En la primera prueba que se han realizado:
 
 * **Modelo:** Secuencial
 * **Capas:**
-    * Dense, 32 neuronas, activación ReLu, kernel_initializer he_normal
+    * Dense, 32 neuronas de salida, activación ReLu, kernel_initializer he_normal
     * Dense, 1 neurona, activación sigmoide
 * **Compilacion:**
     * Loss binary_crossentropy, optimizador adam, metrics accuracy
@@ -613,19 +646,116 @@ Estos datos son bastante buenos.
 
 A partir de estos datos se ha procedido a cambiar los parámetros de la red neuronal para ajustarla mejor. (Desde función de activación, Optimizadores, nuevas capas, de distintos tipos)
 
-El máximo porcentaje de acierto que se ha conseguido ha sido con el modelo presentado.
+Se han realizado pruebas para determinar el numero de capas ocultas necesarias.
+Para conseguir esto, se ha añadido una nueva capa oculta, con 64 salidas, pero los resultados no han variado mucho.
 
-TODO: Cambiar los datos del modelo presentado
+Entiendo por este experimento que no es necesario añadir capas ocultas, porque el dataset con el que estamos operando se puede dividir de forma lineal.
+
+El máximo porcentaje de acierto que se ha conseguido ha sido 96% en fase de prueba.
+Este porcentaje se ha conseguido con los datos presentados a continuación.
+
+Este ejercicio se ha llevado tan lejos como dejar solamente una neurona de salida en la capa de entrada y una salida en la capa de salida.
+Aun con estas características, la red neuronal ha obtenido una media de 95% acierto.
 
 * **Modelo:** Secuencial
 * **Capas:**
-    * Dense, 32 neuronas, activación ReLu, kernel_initializer he_normal
+    * Dense, 1 neuronas de salida, activación ReLu, kernel_initializer he_normal
     * Dense, 1 neurona, activación sigmoide
 * **Compilacion:**
     * Loss binary_crossentropy, optimizador adam, metrics accuracy
 * **Entreno:**
     * Epochs 10
-    * batch_size 16
+    * batch_size 160
+
+Una buena forma de probar nuevas estructuras de capas y neuronas es siguiendo la siguiente regla:
+
+Si se añaden mas capas ocultas, proporcionas a la red neuronal la habilidad de discriminar figuras mas complejas (Construyendo sobre las segmentaciones lineales básicas)
+Si se añaden mas neuronas dentro de una misma capa oculta, se añaden mas características, por tanto, mas formas básicas de separar la información.
+
+Teniendo en cuenta que nuestra red neuronal es sencilla, porque cuenta con una salida: Si es `Botnet` o no, mi teoría es que la forma de subdividir la red neuronal para separar estas características es sencilla.
+
+Revisando ahora los hiperparametros:
+
+Teniendo en cuenta que 'sample' es cada array, en este caso unidimensional de datos de entrada al modelo.
+
+* epochs (Numero de veces que el algoritmo se ejecuta)
+* Batch_size (Numero de 'samples' que tiene que procesar la red hasta que se computen los cambios a realizar)
+
+Se ha probado a reproducir el modelo anterior con 10 'epochs' y `X_train.shape[1] batch_size` pero con el mismo numero de 'epochs', no ha llegado a un porcentaje de precisión tan alto.
+De hecho, parece que es el punto justo en el que se empieza a asentar.
+Menos `epochs` harían que el modelo no fuese lo preciso como podría ser, unas cuantas mas, nos ayudarían a saber que tenemos el modelo mas preciso dados los datos de entrada que podemos generar.
+
+Por este motivo, se ha decidido dejar los hiperparametros `epoch` a 15 y `batch_size` a `X_train.shape[1]` para generar un modelo de aprendizaje llamado 'batch gradient descent'.
+
+La red neuronal resultante, dadas las pruebas realizadas queda de la siguiente forma:
+
+* **Modelo:** Secuencial
+* **Capas:**
+    * Dense, 1 neurona de salida, activación ReLu, kernel_initializer he_normal
+    * Dense, 1 neurona, activación sigmoide
+* **Compilacion:**
+    * Loss binary_crossentropy, optimizador adam, metrics accuracy
+* **Entreno:**
+    * Epochs 15
+    * batch_size `X_train.shape[1]`
+
+Este modelo ha generado un porcentaje de acierto del 94.32% en la fase de prueba.
+
+```
+_________________________________________________________________
+Layer (type)                 Output Shape              Param #
+=================================================================
+dense_1 (Dense)              (None, 1)                 678
+_________________________________________________________________
+dense_2 (Dense)              (None, 1)                 2
+=================================================================
+Total params: 680
+Trainable params: 680
+Non-trainable params: 0
+_________________________________________________________________
+Compiling the Keras model
+Fitting the Keras model
+Epoch 1/15
+ - 1s - loss: 0.6967 - accuracy: 0.0812
+Epoch 2/15
+ - 1s - loss: 0.6957 - accuracy: 0.4601
+Epoch 3/15
+ - 1s - loss: 0.6946 - accuracy: 0.4885
+Epoch 4/15
+ - 1s - loss: 0.6934 - accuracy: 0.5074
+Epoch 5/15
+ - 1s - loss: 0.6923 - accuracy: 0.5819
+Epoch 6/15
+ - 1s - loss: 0.6911 - accuracy: 0.6698
+Epoch 7/15
+ - 1s - loss: 0.6900 - accuracy: 0.8539
+Epoch 8/15
+ - 1s - loss: 0.6889 - accuracy: 0.9269
+Epoch 9/15
+ - 1s - loss: 0.6878 - accuracy: 0.9499
+Epoch 10/15
+ - 1s - loss: 0.6867 - accuracy: 0.9540
+.
+. (Comentado por brevedad)
+.
+Epoch 15/15
+ - 1s - loss: 0.6815 - accuracy: 0.9540
+Model: "sequential_1"
+_________________________________________________________________
+Layer (type)                 Output Shape              Param #
+=================================================================
+dense_1 (Dense)              (None, 1)                 678
+_________________________________________________________________
+dense_2 (Dense)              (None, 1)                 2
+=================================================================
+Total params: 680
+Trainable params: 680
+Non-trainable params: 0
+_________________________________________________________________
+evaluating the Keras model
+Accuracy: 94.32
+Model saved to disk
+```
 
 ### Otros valores a revisar
 
@@ -709,3 +839,6 @@ Notes in Computer Science, vol 10618. Springer, Cham
     * `https://keras.io/guides/functional_api/`
 * *Keras layers*:
     * `https://www.tutorialspoint.com/keras/keras_layers.htm`
+* *Teoria de capas ocultas*
+    * `https://datascience.stackexchange.com/questions/26597/
+    how-to-set-the-number-of-neurons-and-layers-in-neural-networks`
