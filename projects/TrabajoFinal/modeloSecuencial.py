@@ -104,3 +104,7 @@ print_summary(model)
 print("evaluating the Keras model")
 _, accuracy = model.evaluate(X_test, y_test, verbose=0)
 print('Accuracy: %.2f' % (accuracy*100))
+
+# Save the model to disk
+model.save('modeloSecuencial.h5')
+print("Model saved to disk")

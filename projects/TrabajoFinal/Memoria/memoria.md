@@ -40,6 +40,11 @@ Los pasos que se realizan engloban de forma general cualquier problema de Machin
     * Casos comprobados y valores de datos iniciales y de parámetros
     * Resultados obtenidos e interpretación de los datos
 
+
+
+
+
+
 ## Planteamiento
 
 ### Descripción y planteamiento del problema
@@ -53,7 +58,7 @@ Mas en concreto, a modelos como las redes neuronales.
 
 El principal inconveniente a la hora de solucionar un problema de selección en tiempo real con modelos tradicionales, aparece cuando se pretende analizar el trafico y compararlo con varios ejemplos de malware.
 Ya sea comparando directamente pequeños atributos, como el paquete de red entero, al final, estamos comparando con características que ya conocemos e identificamos como maliciosas.
-Esto quiere decir que estamos reaccionando al problema, no tomando medidas pro-activas al problema en quistión.
+Esto quiere decir que estamos reaccionando al problema, no tomando medidas pro-activas al problema en cuestión.
 La finalidad del problema es ser capaces de detectar malware, aunque no se haya detectado anteriormente el tipo especifico de malware siendo analizado.
 
 Solucionar el problema en cuestión con métodos tradicionales, como bien puede ser comprobaciones secuenciales de características del paquete de red a analizar incrementa rápidamente la complejidad del algoritmo.
@@ -62,6 +67,15 @@ Esto hace que sea imposible mantenerlo actualizado.
 
 Existen otras técnicas, no tan primitivas, como por ejemplo comprobación de hashes, tanto completos, como parciales del paquete de red.
 Si podemos identificar las características comunes en los paquetes de red enviados entre el malware y el servidor C&C, podemos cifrar estos datos en hashes, que se revisaran contra los paquetes de red a medida que pasan por la red.
+
+Como extensión a la revisión de hashes, se podría hacer una plataforma a la que se suban todos los hashes de paquetes de red que han sido identificados como `Botnet`.
+Nuestro programa, revisa los hashes obtenidos en nuestra red contra los definidos como maliciosos en la plataforma.
+
+Esta es la base de los Antivirus, aunque plataformas como [virustotal](https://www.virustotal.com/gui/home/upload) llevan los esfuerzos de detección a la comunidad, en vez de a las empresas individuales.
+
+De cualquier forma, este enfoque se sigue pudiendo adaptar a los modelos de redes neuronales, en los que cada X tiempo se actualice el modelo a el mas nuevo, generado por muestras de trafico benigno y maligno.
+
+En resumen, los modelos basados en redes neuronales ofrecen una mejora sustancial en la trata de datos masiva y discriminación de características basada en ellos.
 
 ### Descripción de los datos a utilizar
 
@@ -111,24 +125,63 @@ En caso de que el modelo no detecte correctamente los paquetes maliciosos es obt
 
 ### Posibles algoritmos de aprendizaje automático a usar
 
-En la asignatura cursada, se han realizado estudios sobre algoritmos de 'clustering', Clasificación, Probabilidad y 'Del Learning'
+En la asignatura cursada, se han realizado estudios sobre algoritmos de 'clustering', Clasificación, Probabilidad y 'Deep Learning'
 
 Teniendo en cuenta los algoritmos que se han aprendido durante el curso, se decide ahondar mas en los recursos sobre `Deep Learning`.
 
 Los motivos por esta selección, entre otros son:
 
 * Modelo adaptado al problema
+* Manejo de datos eficiente
 * Preferencia personal
 
-#### Breve comparación de los algoritmos estudiados
+TODO: Acabar de definir por que se han seleccionado las redes neuronales para solucionar este problema.
 
-TODO
+#### Breve comparación de los modelos y paradigmas
 
-Hay dos grandes categorías de redes neuronales:
+Mas allá de las diversas implementaciones, existen varios paradigmas donde los mas usados/reconocidos son:
 
-* RNN (Recurrent Neural Networks)
-    * LSTM (Long Short-Term Memory)
-* CNN (Convolutional Neural Networks)
+* Supervisado
+* No Supervisado
+* Aprendizaje por Refuerzo
+* Auto-aprendizaje
+
+##### Supervisado
+
+La meta de este paradigma es generar la misma salida que lo esperado.
+Son muy eficaces para detectar patrones (Justo nuestro dominio) y regresión
+
+Es el paradigma que vamos a usar en esta practica.
+Tenemos la información necesaria para esto, ya que tenemos clasificados los paquetes de red en `Botnet` y común.
+
+#### No Supervisado
+
+A este modelo se le pasan los datos de entrada, ademas de la función de coste, que es la que determina si el modelo esta progresando adecuadamente.
+Algunas áreas en las que este paradigma es relevante son: Probabilidad, Clustering o Distribución estadística
+
+#### Aprendizaje por Refuerzo
+
+La meta es generar un modelo que minimice el coste, dada una entrada de datos.
+Por ejemplo, este modelo es bueno en juegos, en los que el modelo recibe información y debe generar el siguiente mejor movimiento.
+
+#### Auto-aprendizaje
+
+Es un sistema con una entrada (Situación) y una salida (Acción).
+Se adapta a la salida previa, para generar la nueva salida.
+Un ejemplo de estos algoritmos son los algoritmos genéticos.
+
+
+Dentro del campo de las redes neuronales, existen varias implementaciones, cada una especifica para su propio dominio y especialidad.
+Entre estas, las mas reconocidas son:
+
+* Redes neuronales Convolucionales
+    * Buenas en análisis de imágenes y datos bidimensionales
+* Long Short-Term Memory
+    * Eliminan el problema del gradiente
+    * Buenas con análisis de vocabulario
+
+La que se va a implementar en esta practica no es tan sofisticada como las descritas anteriormente, en parte porque no es necesario, y en parte por mi experiencia.
+
 
 #### Por que Redes neuronales
 
@@ -311,6 +364,9 @@ En el script `modeloSecuencial.py` ya vamos a obtener un extracto del archivo de
 
 Todos los archivos anteriores se encuentran agrupados en un script llamado `prepareData.sh` para agilizar el proceso.
 
+
+
+
 ### Elección del framework
 
 A la hora de generar el modelo, nos encontramos con varias opciones para llegar a la misma finalidad.
@@ -326,7 +382,7 @@ Nosotros vamos a usar Keras en combinación con TensorFlow para generar el model
 
 Mas concretamente, vamos a usar el modelo `sequential_model` para generar nuestra red neuronal.
 
-#### Importación del dataset a Python
+### Importación del dataset a Python
 
 En este dataset conviven tanto datos categóricos como continuos.
 
@@ -340,7 +396,22 @@ Una vez tengamos el dataset tratado para ser ingerido por el modelo de la red ne
 
 A excepción de la fase de tratado de datos y preparado del dataset, todas la demás fases, están en el archivo llamado: `modeloSecuencial.py`.
 
-Los pasos que se toman para generar el dataset son:
+#### `modeloSecuencial.py` - una breve descripción
+
+Este script se encarga de:
+
+* Leer una fracción del dataset de forma optimizada
+* Preparar los datos de entrada 
+* Separar el nuevo dataset en datos de entrada y salida
+* Subdividir el dataset en datos de entrada de prueba y entrenamiento y datos de salida de prueba y entrenamiento
+* Definir el modelo
+* Definir las capas de la red neuronal
+* Compilar el modelo
+* Entrenar el modelo
+* Evaluar el rendimiento del modelo
+* Guardar el modelo generado a disco
+
+Al acabar la ejecución del script, este ha generado un modelo de red neuronal que es capaz de distinguir entre paquetes de red `Botnet` y paquetes de red corrientes.
 
 #### Leer el `.csv`
 
@@ -360,6 +431,62 @@ Durante la codificación del script, uno de los errores que había cometido era 
 El error con el que me estaba encontrando era que el tamaño del dataset de entrada para revisar el modelo no era el mismo que el tamaño que el dataset de entrenamiento del modelo, por tanto, no se podía revisar el modelo con los datos de prueba.
 
 Al darme cuenta de este fallo, se convierten previamente todos los datos de entrada al modelo antes de subdividir el dataset en datos de entrenamiento y datos de testeo.
+
+#### separar el dataset en datos de entrada y salida
+
+Para poder entrenar un modelo de redes neuronales, necesitamos poder decirle al algoritmo cuando ha acertado en la predicción y cuando esta predicción es incorrecta.
+
+La forma mas común de almacenar esta información es incluir la clase `Botnet` de cada tupla en la ultima columna de la misma.
+De esta forma, tenemos un dataset independiente, que no necesita nada mas para poder ser útil para entrenar.
+
+Para entregar al modelo los datos de entrada (`X`), tenemos que dividir el dataset generado, para que no incluya la clase `Botnet`, ya que esta es la salida que tiene que generar el mismo y usar este como entrada.
+
+Generamos el dataset de salida (`y`) seleccionando únicamente la clase Botnet.
+
+#### Subdividir el dataset en datos de entreno y testeo
+
+Subdividimos el dataset en datos de entrenamiento y prueba para cada tipo.
+
+Se usa el método `train_test_split` de `sklearn` para subdividir el dataset en datos de entrenamiento y datos de prueba.
+Se hace esto porque solo de esta forma podemos averiguar si el modelo generado no ha sobreaprendido.
+Sobre aprender, en redes neuronales significa que el modelo ha memorizado cada tupla, de forma que se ha vuelto demasiado especifico para nuestro cometido.
+
+Si un modelo ha sobreaprendido, no sabe distinguir trafico con el que no haya entrenado.
+Para nuestra finalidad, esto es poco beneficioso, ya que el modelo se debe encargar de filtrar el trafico de Botnet, lo haya visto anteriormente o no.
+
+#### Definición del modelo
+
+De los posibles dos modelos proporcionados por Keras, se ha optado por implementar el modelo secuencial.
+
+#### Capas del modelo
+
+Hay muchos tipos de capas disponibles en Keras.
+De entre las capas Core:
+
+* Dense
+* Activation
+* Embedding
+* Masking
+* Lambda
+
+Se ha optado por usar las capas `Dense`.
+Esta capa es la mas básica de todas.
+
+A la primera capa se le pasa la dimensión de los datos de entrada, que se obtiene dinámicamente según el dataset de entrada `X_train`.
+
+#### Compilado del modelo
+
+#### Entrenamiento del modelo
+
+#### Evaluación de rendimiento del modelo
+
+#### Guardado del modelo a disco
+
+
+
+
+
+TODO: Acabar de describir lo que hace el script `modeloSecuencial.py`
 
 ### Pasos de ejecución
 
@@ -427,22 +554,9 @@ El programa de Python en el que se encuentra el modelo se encarga de extraer una
 ### Aplicación de los programas/scripts
 
 El script en el que se define el modelo y se entrena se llama `modeloSecuencial.py`.
-
 Para **ejecutar este archivo, se puede usar el comando `python modeloSecuencial.py`**
 
-Este script se encarga de:
-
-* Leer una fracción del dataset de forma optimizada
-* Separar el nuevo dataset en datos de entrada y salida
-* Preparar los datos de entrada (Tanto los de prueba como los de entrenamiento)
-* Subdividir el dataset en datos de entrada de prueba y entrenamiento y datos de salida de prueba y entrenamiento
-* Definir el modelo
-* Definir las capas de la red neuronal
-* Compilar el modelo
-* Entrenar el modelo
-* Evaluar el rendimiento del modelo
-
-Automáticamente, se encodea el dataset para poder usarse con el modelo, se genera el modelo, se entrena el mismo y se calcula el porcentaje de aciertos basándose en los datos de prueba.
+Una vez haya terminado, este script habrá generado un modelo capaz de discriminar entre paquetes de red `Botnet` y benignos.
 
 ### Casos comprobados y valores de datos iniciales y de parámetros
 
@@ -461,7 +575,7 @@ Si sobrepasa la función de activación, esta neurona se activa y el flujo conti
 
 Los dos tipos de funciones de activación que se han usado son:
 
-* `relu`
+* `ReLu`
     * Es una mejora a la función de activación binaria.
     * Es sencilla de aplicar, por tanto es rápida, buena para una primera capa
     * Como desventaja, puede generar neuronas "muertas"
@@ -486,7 +600,7 @@ En la primera prueba que se han realizado:
 
 * **Modelo:** Secuencial
 * **Capas:**
-    * Dense, 32 neuronas, activación relu, kernel_initializer he_normal
+    * Dense, 32 neuronas, activación ReLu, kernel_initializer he_normal
     * Dense, 1 neurona, activación sigmoide
 * **Compilacion:**
     * Loss binary_crossentropy, optimizador adam, metrics accuracy
@@ -505,7 +619,7 @@ TODO: Cambiar los datos del modelo presentado
 
 * **Modelo:** Secuencial
 * **Capas:**
-    * Dense, 32 neuronas, activación relu, kernel_initializer he_normal
+    * Dense, 32 neuronas, activación ReLu, kernel_initializer he_normal
     * Dense, 1 neurona, activación sigmoide
 * **Compilacion:**
     * Loss binary_crossentropy, optimizador adam, metrics accuracy
@@ -525,6 +639,14 @@ Creo que de esta forma, el modelo hubiese tenido mas variedad de información.
 Quizá, una posible consecuencia es esto es que hubiese salido mas general.
 Entiendo que no, porque los datos que se han seleccionado del dataset, no han sido de un mismo Botnet, sino un extracto de todos los datos.
 De todas formas, me quedo con la duda.
+
+Durante la realización de esta practica, ha sido muy complicado justificar las características de las capas internas de la red neuronal. 
+Seguramente debido a la necesidad de profundizar mas mi conocimiento en la materia y a la falta de documentación de la misma.
+El problema con el que me he encontrado es que, entendiendo todos los factores que entran en juego con la síntesis de una red neuronal, no he sabido tomar decisiones informadas sobre la estructura de la misma.
+
+Una solución a este problema es dejar que la red neuronal se entrene a si misma.
+Esta idea tiene nombre de 'Neural Architecture Search' y existe un framework que se encarga de generar una red neuronal optima dado los datasets de entrada y salida.
+Este framework se llama [autokeras](https://autokeras.com/)
 
 
 
@@ -585,3 +707,5 @@ Notes in Computer Science, vol 10618. Springer, Cham
     * `https://keras.io/guides/training_with_built_in_methods/`
 * *Keras functional model*:
     * `https://keras.io/guides/functional_api/`
+* *Keras layers*:
+    * `https://www.tutorialspoint.com/keras/keras_layers.htm`
