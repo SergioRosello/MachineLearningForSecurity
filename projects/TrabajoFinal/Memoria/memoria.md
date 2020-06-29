@@ -554,6 +554,20 @@ En nuestro caso, `merged_network_benign_traffic.csv` y `merged_network_malign_tr
 Como alternativa, se ha preparado un script que engloba los pasos anteriores en uno, para directamente poder importar con el script del modelo `modeloSecuencial.py`.
 Simplemente **Ejecutamos prepareData.sh**, se ejecutan todos los scripts anteriores.
 
+Un ejemplo de como debe quedar el espacio de trabajo.
+
+```
+* practicaFinal                 (Directorio raíz)
+  * modeloSecuencial.py         (Modelo Keras)
+  * isot_app_and_botnet_dataset (Dataset extraído)
+    * application_data          (Directorio extraído)
+    * botnet_data               (Directorio extraído)
+    * extraction.sh             (Archivo copiado)
+    * sanitize.py               (Archivo copiado)
+    * identifyAndsort.sh        (Archivo copiado)
+    * prepareData.sh            (Archivo copiado)
+```
+
 
 ### Limitaciones/restricciones en la implementación
 
