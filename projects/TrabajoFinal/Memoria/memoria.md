@@ -65,8 +65,9 @@ Solucionar el problema en cuestión con métodos tradicionales, como bien puede 
 Ademas, cada vez que se detecten nuevos casos, se debe integrar la comprobación al programa.
 Esto hace que sea imposible mantenerlo actualizado.
 
-Existen otras técnicas, no tan primitivas, como por ejemplo comprobación de hashes, tanto completos, como parciales del paquete de red.
-Si podemos identificar las características comunes en los paquetes de red enviados entre el malware y el servidor C&C, podemos cifrar estos datos en hashes, que se revisaran contra los paquetes de red a medida que pasan por la red.
+Existen otras técnicas, no tan primitivas, como por ejemplo comprobación de hashes, tanto completos, como parciales del paquete de red y sus características.
+Si podemos identificar las características comunes en los paquetes de red enviados entre el malware y el servidor C&C, podemos cifrar estos datos en hashes.
+Una vez tenemos suficiente información sobre los hashes malignos, los podemos comparar contra los nuestros propios y determinar si tenemos o no paquetes malware en nuestra red.
 
 Como extensión a la revisión de hashes, se podría hacer una plataforma a la que se suban todos los hashes de paquetes de red que han sido identificados como `Botnet`.
 Nuestro programa, revisa los hashes obtenidos en nuestra red contra los definidos como maliciosos en la plataforma.
@@ -224,13 +225,13 @@ Se van a tener que mutar los datos crudos a datos con formato `csv`, que luego l
 
 Es posible que el dataset generado tras convertir los datos de `pcap` a `csv` contenga errores.
 Un ejemplo de error es que cualquier campo no tenga valor.
-Si se detecta este error, debemos arreglarlo, ya que para las redes neuronales, es mejor que todos los campos tengan un valor. 
+Si se detecta este error, debemos arreglarlo, ya que, aunque las redes neuronales solventan este error, es mejor que todos los campos tengan un valor. 
 En este caso, el valor nulo lo cambiamos a `UNKNOWN`.
 Todos estos errores deben ser contemplados y arreglados.
 
-En este dataset en concreto, los pasos que hemos tenido que hacer para sanar el dataset son:
+En este dataset en concreto, los pasos a realizar para sanar el dataset son:
 
-* Eliminar las columnas extra introducidas por la herramienta de extracción de "features"
+* Eliminar las comas extra introducidas por la herramienta de extracción de "features"
 * Eliminar los valores nulos en el dataset
 * Eliminar las tuplas que contienen información corrupta, en este caso, ha habido un problema con la herramienta de extracción de features `tshark`, en la que ha introducido dos veces las columnas de `ip.src` e `ip.dst`.
 
@@ -393,9 +394,9 @@ Mas concretamente, vamos a usar el modelo `sequential_model` para generar nuestr
 
 En este dataset conviven tanto datos categóricos como continuos.
 
-Se ha tomado la decisión de no incluir los datos del `epoch_date` ya que no van tienen mucha relevancia a la hora de generar la red neuronal.
+Se ha tomado la decisión de no incluir los datos del `epoch_date` ya que no tienen mucha relevancia a la hora de entrenar la red neuronal.
 
-Los datos son categóricos, debemos cambiarlos a datos `dummy` antes de que los use el algoritmo de generación del modelo.
+Los datos categóricos debemos cambiarlos a datos `dummy` antes de que los use el algoritmo de generación del modelo.
 Para realizar este paso, usamos la codificación `one-hot`.
 
 Los datos continuos, debemos normalizarlos, para eso, tenemos que asignar 0 al valor mas bajo y 1 al valor mas alto.
@@ -441,7 +442,7 @@ Al darme cuenta de este fallo, se convierten previamente todos los datos de entr
 
 #### separar el dataset en datos de entrada y salida
 
-Para poder entrenar un modelo de redes neuronales, necesitamos poder decirle al algoritmo cuando ha acertado en la predicción y cuando esta predicción es incorrecta.
+Para poder entrenar nuestro modelo de redes neuronales (Supervisado), necesitamos poder decirle al algoritmo cuando ha acertado en la predicción y cuando esta predicción es incorrecta.
 
 La forma mas común de almacenar esta información es incluir la clase `Botnet` de cada tupla en la ultima columna de la misma.
 De esta forma, tenemos un dataset independiente, que no necesita nada mas para poder ser útil para entrenar.
@@ -452,7 +453,7 @@ Generamos el dataset de salida (`y`) seleccionando únicamente la clase Botnet.
 
 #### Subdividir el dataset en datos de entreno y testeo
 
-Subdividimos el dataset en datos de entrenamiento y prueba para cada tipo.
+Subdividimos el dataset en datos de entrenamiento y testeo para cada tipo.
 
 Se usa el método `train_test_split` de `sklearn` para subdividir el dataset en datos de entrenamiento y datos de prueba.
 Se hace esto porque solo de esta forma podemos averiguar si el modelo generado no ha sobreaprendido.
@@ -487,12 +488,9 @@ El modelo se compila con el comando:
 
 `model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])`
 
-Se ha decidido TODO: Acabar
-
 #### Entrenamiento del modelo
 
 Cuando modelo esta definido y compilado, se tiene que entrenar, para generar las predicciones.
-Esto pasa en esta parte.
 El comando que se usa es:
 
 `model.fit(X_train, y_train, epochs=15, batch_size=X_train.shape[1], verbose=2)`
@@ -517,9 +515,10 @@ Para poder desplegar el modelo, tenemos que poder guardarlo en el disco.
 Este es un archivo que contiene la información que ha sido generada en la fase de entrenamiento (`model.fit`).
 
 El comando que ejecuta esta acción es:
+
 `model.save('modeloSecuencial.h5')`
 
-TODO: Revisar
+Que, almacena el archivo llamado `modeloSecuencial.h5` a nuestro directorio base.
 
 ### Pasos de ejecución
 
@@ -556,15 +555,14 @@ Simplemente **Ejecutamos prepareData.sh**, se ejecutan todos los scripts anterio
 
 ### Limitaciones/restricciones en la implementación
 
-Este modelo es capaz de discriminar los paquetes de red maliciosos de los comunes teniendo en cuenta el grupo reducido de paquetes que se ha usado.
-A día de hoy, no se puede asegurar el funcionamiento del modelo con datos o programas maliciosos cuyo trafico no se ha capturado y utilizado para generar el modelo.
-Dicho esto, es probable que el modelo pueda inferir en mayor o menor medida trafico no revisado anteriormente, ya que es justo el dominio de las redes neuronales.
+A día de hoy, no se pueden filtrar los paquetes que pasan por la red con este modelo, debido a que falta una capa mas de implementación.
 
 Una de las limitaciones a la hora de realizar esta implementación ha sido la ingente cantidad de datos que contiene el dataset.
 El archivo de texto plano que contiene todos los paquetes del dataset tiene en torno a diez millones de entrada, esto son en torno a 10 millones de datos sobre paquetes de red.
 Para analizar todos estos datos, al menos de la forma en la que se ha procedido en esta ocasión, se hubiese necesitado un ordenador muy capaz, con mas de siete TiB de memoria.
 
-
+No haber visto el modelo de forma gráfica, para poder entender mejor los datos siendo tratados.
+Al poder ver el modelo de forma gráfica, es mas sencillo decidir el numero de capas ocultas que necesita el modelo, pero sin esta información, la mayor parte de esa decisión ha sido prueba y error informados. 
 
 
 
@@ -579,6 +577,7 @@ Para analizar todos estos datos, al menos de la forma en la que se ha procedido 
 
 1. Descarga de los archivos desde mi [repositorio de GitHub: sergiorosello](https://github.com/SergioRosello/MachineLearningForSecurity/tree/master/projects/TrabajoFinal) o desde la entrega proporcionada a través de AlF.
 1. Descarga del dataset desde [ISOT HTTP Botnet Database](https://drive.google.com/open?id=1LW-FNhgqTZfYswHSLPUxtwccwM75O4J4)
+1. Copiar todos los archivos excepto `modeloSecuencial.py` a la carpeta extraída.
 1. Ejecutar el script proporcionado en la entrega llamado `prepareData.sh`.
 
 Al llegar a este punto, se habrá generado un archivo llamado `sorted_merged_traffic.csv`.
@@ -625,7 +624,6 @@ Entre estos, el optimizador que se ha decidido usar es `adam`, debido a que seg�
 
 Cuando se ha compilado el modelo, se ha usado la métrica "accuracy" para saber el numero de veces que el modelo predice el "label".
 Esto es: Saber la frecuencia con la que el modelo acierta determinando el tipo de trafico que se ha comprobado.
-
 
 ### Resultados obtenidos e interpretación de los datos
 
@@ -772,7 +770,7 @@ De todas formas, me quedo con la duda.
 
 Durante la realización de esta practica, ha sido muy complicado justificar las características de las capas internas de la red neuronal. 
 Seguramente debido a la necesidad de profundizar mas mi conocimiento en la materia y a la falta de documentación de la misma.
-El problema con el que me he encontrado es que, entendiendo todos los factores que entran en juego con la síntesis de una red neuronal, no he sabido tomar decisiones informadas sobre la estructura de la misma.
+El problema con el que me he encontrado es que, entendiendo todos los factores que entran en juego con la síntesis de una red neuronal, ha sido muy complicado tomar decisiones informadas sobre la estructura de la misma.
 
 Una solución a este problema es dejar que la red neuronal se entrene a si misma.
 Esta idea tiene nombre de 'Neural Architecture Search' y existe un framework que se encarga de generar una red neuronal optima dado los datasets de entrada y salida.
@@ -802,17 +800,23 @@ Otro inconveniente de la forma en la que se ha capturado el dataset es que los d
 Un problema persistente a lo largo de toda la practica ha sido la enorme cantidad de datos disponibles.
 Desde la adquisición de los mismos, pasando por su gestión, hasta su utilización con el modelo de red neuronal.
 
+Seria muy interesante utilizar el modelo generado para que filtre el trafico en tiempo real.
+Se ha realizado una breve investigación y se podrían concatenar herramientas como [mitmproxy](https://mitmproxy.org/), haciendo uso de su API para obtener los datos necesarios para convertir los paquetes en datos que necesita nuestro modelo.
+A continuación, podemos pasar la tupla por el modelo generado para realizar nuestra predicción, si es Botnet o no.
+Según el resultado del modelo, dejamos que pase el paquete por nuestro proxy.
+
+Una de los inconvenientes que le encuentro al planteamiento anterior es que no podríamos codificar los datos categóricos como lo hemos estado haciendo hasta ahora, porque no tenemos todos las posibles valores que puede cobrar una propiedad.
+
 # Comentarios sobre la realización de la actividad
 
 La actividad ha sido un ejercicio completo de tratado de datos para un propósito concreto.
 Ha sido muy interesante pasar por todas las fases a las que se enfrenta un analista de datos
 Sobre todo, darme cuenta que el manejo de datos y su correcta codificación consumen mas tiempo incluso que implementar el modelo.
 Mas aun si el analista tiene claro que modelo debe implementar para solucionar el problema.
-En mi experiencia, esta parte ha sido la mas complicada.
+En mi experiencia, esta parte ha sido la mas incierta.
+Sabia los pasos necesarios para adaptar los datos al modelo, pero en el caso de la red neuronal, estos no han sido tan evidentes.
 
 # Bibliografía 
-
-TODO: Corregir bibliografía
 
 * *Neural networks*:
     * `https://scikit-learn.org/stable/modules/

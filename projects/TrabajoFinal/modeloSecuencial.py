@@ -24,6 +24,8 @@ Vamos a obtener un sample del dataset, para no cargar con el archivo enorme
 """
 
 import pandas as pd
+# Como maximo, sample de 0.0002
+# Un sample mayor consume demasiada memoria
 data = data.sample(frac=.0001)
 
 # retrieve numpy array
